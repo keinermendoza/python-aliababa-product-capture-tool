@@ -7,18 +7,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
 </head>
 <body>
+   <h1>Cotations for {{request_cotation_with_cotations.request.title}}</h1>
     <table>
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Name</th>
+                <th>Company</th>
+                <th>Product</th>
+                <th>Posted Min Price</th>
+                <th>Posted Min Qnt</th>
             </tr>
         </thead>
         <tbody>
-            {% for item in request_cotations %}
+            {% for item in request_cotation_with_cotations.cotations %}
             <tr>
                 <td>{{item.id}}</td>
-                <td>{{item.name}}</td>        
+                <td>
+                    <a href="{{item.company_url}}" target="_blank">{{item.company_name}}</a>
+                </td>
+                <td>
+                    <a href="{{item.product_url}}" target="_blank">{{item.product_name}}</a>
+                </td>
+                <td>{{item.public_minimum_price}}</td>
+                <td>{{item.public_minimum_quantity}}</td>
             </tr>        
             {% endfor %}
         </tbody>
