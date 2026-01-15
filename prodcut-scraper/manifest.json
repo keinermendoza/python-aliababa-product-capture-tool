@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Product Scraper",
+  "version": "1.0",
+  "description": "Semi-manual product scraper",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
+ 
