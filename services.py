@@ -1,40 +1,77 @@
-from datetime import date
-from sqlalchemy import select, insert
+from sqlalchemy import func, select, insert, update, Connection
 from sqlalchemy.exc import IntegrityError
 from schema import (
     cotations_table,
     request_cotations_table,
-    selected_request_cotation
+    selected_request_cotation_table
 ) 
+def get_selected_request_cotation(conn: Connection):
+    """
+    selected request cotation must to manage a single instance
+    referencing wich is the active request cotation.
+    Help to differentiate when it's necessary create or update the single instance 
+    """
+    stmt = select(selected_request_cotation_table.c.request_cotation_id)
+    result = conn.execute(stmt)
+    return result.first()
 
-class RequestCotationDosentExist(Exception):
-    pass
+def get_selected_request_cotation_id(conn: Connection) -> int | None:
+    if selected_request_cotation := get_selected_request_cotation(conn):
+        print("SELECTED_REQUEST_COTATION", selected_request_cotation)
+        return selected_request_cotation.request_cotation_id
+    
+def set_selected_request_cotation_id(conn:Connection, request_cotation_id: int):
+    stmt = update(selected_request_cotation_table).values(request_cotation_id=request_cotation_id)
+    if not get_selected_request_cotation(conn):
+        stmt = insert(selected_request_cotation_table).values(request_cotation_id=request_cotation_id)
+    conn.execute(stmt)
 
-def save_cotation_in_db(data: dict) -> dict:
-    request_cotation_id = get_current_request_cotation_id()
-    store_cotation(request_cotation_id, data)
-    return {
-        "title": "Rodillo de masageador de belleza",
-        "date": date.today()
-    }
+def store_request_cotation(conn:Connection, title: str) -> int:
+    stmt = insert(request_cotations_table).values(title=title)
+    result = conn.execute(stmt)
+    return result.inserted_primary_key[0]
 
-def get_current_request_cotation_id():
-    try:
-        # select request_cotation_id from selected_cotation
-        # return id: int
-        id = 1
-    except Exception:
-        raise RequestCotationDosentExist("por favor cree una RequestCotation antes de intentar salvar cotaciones individuales")
-    return id 
-
-def store_cotation(request_cotation_id, cotation_data):
-    # insert into cotations (request_cotation_id, )
-    insert(cotations_table).values(
-        company_name=cotation_data["company_name"],
-        company_url=cotation_data["company_url"],
-        product_name=cotation_data["product_name"],
-        product_url=cotation_data["product_url"],
-        public_minimum_price=cotation_data["public_minimum_price"],
-        public_minimum_quantity=cotation_data["public_minimum_quantity"],
-        request_cotation_id=request_cotation_id
+def get_request_cotations_with_cotations_count(conn:Connection):
+    stmt = select(
+        request_cotations_table.c.id,
+        request_cotations_table.c.title,
+        request_cotations_table.c.created,
+        func.count(cotations_table.c.id).label("cotations")
+    ).outerjoin(cotations_table, cotations_table.c.request_cotation_id == request_cotations_table.c.id).group_by(
+        request_cotations_table.c.id
     )
+    result = conn.execute(stmt)
+    return result.fetchall()
+
+def get_request_cotation_with_related_cotations(conn: Connection, request_cotations_id: int):
+    stmt = select(
+        request_cotations_table.c.id,
+        request_cotations_table.c.title,
+        request_cotations_table.c.created.label("request_cotation_created"),
+        cotations_table.c.created.label("cotation_created"),
+        cotations_table.c.company_name,
+        cotations_table.c.company_url,
+        cotations_table.c.product_name,
+        cotations_table.c.product_url,
+        cotations_table.c.public_minimum_price,
+        cotations_table.c.public_minimum_quantity,
+        cotations_table.c.request_cotation_id,
+    ).join(cotations_table, cotations_table.c.request_cotation_id == request_cotations_table.c.id).group_by(
+        request_cotations_table.c.id
+    ).where(cotations_table.c.request_cotation_id == request_cotations_id)
+    result = conn.execute(stmt)
+    return result.fetchall()
+
+def store_cotation(conn, cotation_data):
+    if selected_request_cotation_id := get_selected_request_cotation_id(conn):
+        insert(cotations_table).values(
+            company_name=cotation_data["company_name"],
+            company_url=cotation_data["company_url"],
+            product_name=cotation_data["product_name"],
+            product_url=cotation_data["product_url"],
+            public_minimum_price=cotation_data["public_minimum_price"],
+            public_minimum_quantity=cotation_data["public_minimum_quantity"],
+            request_cotation_id=selected_request_cotation_id
+        )
+        return True
+    raise IntegrityError("you must to generate a request cotation before to store individual cotations")

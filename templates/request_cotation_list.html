@@ -31,14 +31,15 @@
             <tbody>
                 {% for item in request_cotations %}
                 <tr>
-                    <td>{{item.request.id}}</td>
+                    <td>{{item.id}}</td>
                     <td>
-                        <a href="{{}}"></a>
-                        {{item.request.title}}
+                        <a href="{{url_for('list_cotations', request_cotation_id=item.id)}}">
+                        {{item.title}}
+                        </a>
                     </td>
                     <td>{{item.cotations_count}}</td>
 
-                    {% if item.request.id == selected_request_cotation_id %}  
+                    {% if item.id == selected_request_cotation_id %}  
                     <td>SELECTED</td>
                     {% else %}
                     <td>-</td>
