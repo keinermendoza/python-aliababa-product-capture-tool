@@ -33,7 +33,7 @@ def webhook():
         with engine.begin() as conn:
             store_cotation(conn, data)
     except Exception as e:
-        return jsonify({"message": e.message}), 400
+        return jsonify({"message": str(e)}), 400
 
     return jsonify({"message": "funciono!"})
 
@@ -49,41 +49,42 @@ def webhook():
 
 @app.get("/")
 def list_request_cotations():
-    # get request cotations from servcies
-    # get selected request cotation from services
     with engine.begin() as conn:
         id = get_selected_request_cotation_id(conn)
         request_cotations = get_request_cotations_with_cotations_count(conn)
-    print("id", id)
-    print("request_cotations", request_cotations)
-    # render html with listing of request cotation
-    return render_template("request_cotation_list.html", request_cotations=request_cotations, selected_request_cotation_id=id)
+
+    return render_template(
+        "request_cotation_list.html",
+        request_cotations=request_cotations,
+        selected_request_cotation_id=id
+    )
 
 @app.post("/")
 def create_request_cotations():
-    # validate data of request cotation
     title = request.form.get("title", None)
 
-    # store request cotation    
     with engine.begin() as conn:
         request_cotation_id = store_request_cotation(conn, title)
         set_selected_request_cotation_id(conn, request_cotation_id)
+    
     return redirect(url_for("list_request_cotations"))
 
 @app.get("/request/<int:request_cotation_id>")
 def list_cotations(request_cotation_id: int):
-    # get request cotation with all cotations associated from servcies: raise error if not exists
     with engine.begin() as conn:
         request_cotation_with_cotations = get_request_cotation_with_related_cotations(conn, request_cotation_id)
-    # get  with request
-    return render_template("cotation_list.html", request_cotation_with_cotations=request_cotation_with_cotations)
+    
+    print(request_cotation_with_cotations)
+    return render_template(
+        "cotation_list.html",
+        request_cotation_with_cotations=request_cotation_with_cotations
+    )
 
-@app.post("/request/<int:request_cotation_id>/select")
-def select_request_cotations(request_cotation_id: int):
-
+# @app.post("/request/<int:request_cotation_id>/select")
+# def select_request_cotations(request_cotation_id: int):
     # get request cotation from servcies: raise error if not exists
     # update value of unique selected request instance
-    pass
+    # pass
 
 @app.cli.command("start_db")
 def start_db():

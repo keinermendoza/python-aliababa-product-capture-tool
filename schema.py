@@ -45,4 +45,5 @@ cotations_table = Table(
     Column("public_minimum_price", Numeric(precision=9, scale=2), CheckConstraint('public_minimum_price >= 0'), nullable=False),
     Column("public_minimum_quantity", String(300), CheckConstraint("public_minimum_quantity != ''"), nullable=False),
     Column("request_cotation_id", Integer, ForeignKey('request_cotations.id', ondelete='CASCADE'), nullable=False),
+    UniqueConstraint("request_cotation_id", 'product_url', 'company_name', name='uix_cotation_company_and_product_url')
 )

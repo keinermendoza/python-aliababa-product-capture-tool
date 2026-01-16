@@ -34,7 +34,7 @@
     }
 
     if (modulePrice.children[1]) {
-      data.price_offered = modulePrice.children[1].innerText.trim();
+      data.price_offered = modulePrice.children[1].innerText.trim().replace("$", "");
     }
   }
 
