@@ -5,7 +5,7 @@ from schema import (
     request_cotations_table,
     selected_request_cotation_table
 ) 
-def get_selected_request_cotation(conn: Connection):
+def check_if_selected_request_cotation_exists(conn: Connection):
     """
     selected request cotation must to manage a single instance
     referencing wich is the active request cotation.
@@ -15,13 +15,23 @@ def get_selected_request_cotation(conn: Connection):
     result = conn.execute(stmt)
     return result.first()
 
+def get_selected_request_cotation(conn: Connection):
+    id = get_selected_request_cotation_id(conn)
+    print("id====", id)
+    if id is not None:
+        return conn.execute(
+            select(request_cotations_table).where(
+                request_cotations_table.c.id==id
+            )
+        ).first()
+
 def get_selected_request_cotation_id(conn: Connection) -> int | None:
-    if selected_request_cotation := get_selected_request_cotation(conn):
+    if selected_request_cotation := check_if_selected_request_cotation_exists(conn):
         return selected_request_cotation.request_cotation_id
     
 def set_selected_request_cotation_id(conn:Connection, request_cotation_id: int):
     stmt = update(selected_request_cotation_table).values(request_cotation_id=request_cotation_id)
-    if not get_selected_request_cotation(conn):
+    if not check_if_selected_request_cotation_exists(conn):
         stmt = insert(selected_request_cotation_table).values(request_cotation_id=request_cotation_id)
     conn.execute(stmt)
 

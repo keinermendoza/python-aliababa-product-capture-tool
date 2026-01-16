@@ -4,12 +4,14 @@ from sqlalchemy import create_engine
 from flask_socketio import SocketIO
 from repository import (
     get_selected_request_cotation_id,
+    get_selected_request_cotation,
     set_selected_request_cotation_id,
     store_request_cotation,
     store_cotation,
     get_request_cotations_with_cotations_count,
     get_request_cotation_with_related_cotations
 )
+from sheets import write_cotations_csv
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -28,11 +30,14 @@ CORS(
 
 @app.post("/webhook")
 def webhook():
-    data = request.get_json()   # ← aquí lees el JSON
+    data = request.get_json()
     try:
         with engine.begin() as conn:
             store_cotation(conn, data)
+            request_cotation = get_selected_request_cotation(conn)
+            write_cotations_csv(request_cotation, data)
     except Exception as e:
+        print(e)
         return jsonify({"message": str(e)}), 400
 
     return jsonify({"message": "funciono!"})
