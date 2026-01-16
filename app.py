@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, render_template, redirect, url_for
 from flask_cors import CORS
 from sqlalchemy import create_engine
 from flask_socketio import SocketIO
-from services import (
+from repository import (
     get_selected_request_cotation_id,
     set_selected_request_cotation_id,
     store_request_cotation,
