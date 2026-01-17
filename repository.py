@@ -48,10 +48,13 @@ def get_request_cotations_with_cotations_count(conn:Connection):
     result = conn.execute(stmt)
     return result.fetchall()
 
-def get_request_cotation_with_related_cotations(conn: Connection, request_cotation_id: int) -> dict:
-    request_cotation = conn.execute(
+def get_request_cotation(conn: Connection, request_cotation_id: int):
+    return conn.execute(
         select(request_cotations_table).where(request_cotations_table.c.id==request_cotation_id)
     ).one()
+
+def get_request_cotation_with_related_cotations(conn: Connection, request_cotation_id: int) -> dict:
+    request_cotation = get_request_cotation(conn, request_cotation_id)
 
     cotations = conn.execute(
         select(cotations_table).where(cotations_table.c.request_cotation_id==request_cotation_id)

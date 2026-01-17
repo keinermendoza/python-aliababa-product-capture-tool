@@ -1,3 +1,4 @@
+from os import getenv
 from flask import Flask, jsonify, request, render_template, redirect, url_for
 from flask_cors import CORS
 from sqlalchemy import create_engine
@@ -8,14 +9,16 @@ from repository import (
     change_selected_request_cotation,
     store_request_cotation,
     store_cotation,
+    get_request_cotation,
     get_request_cotations_with_cotations_count,
     get_request_cotation_with_related_cotations
 )
 from sheets import write_cotations_csv
+from utils import copy_buyer_script_to_clipboard
 
 app = Flask(__name__)
 socketio = SocketIO(app)
-engine = create_engine("sqlite:///request_cotations.db", echo=True)
+engine = create_engine("sqlite:///request_cotations.db", echo=False)
 
 CORS(
     app,
@@ -31,12 +34,22 @@ CORS(
 @app.post("/webhook")
 def webhook():
     data = request.get_json()
+    print(data)
     try:
         with engine.begin() as conn:
             store_cotation(conn, data)
+            id = get_selected_request_cotation_id(conn)
+            request_cotation = get_request_cotation(conn, id)
             socketio.emit("reload_page")
+            
+            # copy_buyer_script_to_clipboard(
+            #     buyer_name=getenv("BUYER_NAME"),
+            #     buyer_address=getenv("BUYER_ADDRESS"),
+            #     quantity_requested=request_cotation.quantity,
+            #     prodcut_name=data["product_name"]
+            # )
     except Exception as e:
-        print(e)
+        print("Exception was raised: ", e)
         return jsonify({"message": str(e)}), 400
 
     return jsonify({"message": "funciono!"})

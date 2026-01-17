@@ -43,8 +43,8 @@ cotations_table = Table(
     Column("company_url", String(300), CheckConstraint("company_url != ''"), nullable=False),
     Column("product_name", String(200), CheckConstraint("product_name != ''"), nullable=False),
     Column("product_url", String(300), CheckConstraint("product_url != ''"), nullable=False),
-    Column("public_minimum_price", Numeric(precision=9, scale=2), CheckConstraint('public_minimum_price >= 0'), nullable=False),
-    Column("public_minimum_quantity", String(300), CheckConstraint("public_minimum_quantity != ''"), nullable=False),
+    Column("public_minimum_price", String(20), nullable=True),
+    Column("public_minimum_quantity", String(300), nullable=True),
     Column("request_cotation_id", Integer, ForeignKey('request_cotations.id', ondelete='CASCADE'), nullable=False),
     UniqueConstraint("request_cotation_id", 'product_url', 'company_name', name='uix_cotation_company_and_product_url')
 )

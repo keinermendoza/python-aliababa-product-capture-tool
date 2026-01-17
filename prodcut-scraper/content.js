@@ -26,15 +26,17 @@
   }
 
   // Price
-  const modulePrice = document.querySelector(".module_price .price-item");
+  const modulePrice = document.querySelector(".module_price");
+  const priceCard = modulePrice.querySelector(".price-item") || modulePrice.querySelector(".range-price");
+  
 
-  if (modulePrice) {
-    if (modulePrice.firstChild?.innerText) {
-      data.minimum_quantity = modulePrice.firstChild.innerText.trim();
+  if (priceCard) {
+    if (priceCard.firstChild?.innerText) {
+      data.minimum_quantity = priceCard.firstChild.innerText.trim();
     }
 
-    if (modulePrice.children[1]) {
-      data.price_offered = modulePrice.children[1].innerText.trim().replace("$", "");
+    if (priceCard.children[1]) {
+      data.price_offered = priceCard.children[1].innerText.trim().replace("$", "");
     }
   }
 

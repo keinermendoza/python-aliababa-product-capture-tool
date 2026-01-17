@@ -16,7 +16,6 @@ def write_cotations_csv(request_cotation_with_cotations: dict) -> str | None:
     filename = slugify(f"{request.title}_{request.created.strftime('%Y-%m-%d %H')}") + ".csv"
     path = dir_path / filename
     columns = cotations[0]._mapping.keys()
-    print("COLUMNS ######", columns)
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=columns)
         writer.writeheader()
