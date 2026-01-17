@@ -3,16 +3,7 @@ from flask import Flask, jsonify, request, render_template, redirect, url_for
 from flask_cors import CORS
 from sqlalchemy import create_engine
 from flask_socketio import SocketIO, emit
-from repository import (
-    get_selected_request_cotation_id,
-    set_selected_request_cotation_id,
-    change_selected_request_cotation,
-    store_request_cotation,
-    store_cotation,
-    get_request_cotation,
-    get_request_cotations_with_cotations_count,
-    get_request_cotation_with_related_cotations
-)
+from repository import SQLAlchemyRepository 
 from sheets import write_cotations_csv
 from utils import copy_buyer_script_to_clipboard
 
@@ -37,10 +28,10 @@ def webhook():
     print(data)
     try:
         with engine.begin() as conn:
-            store_cotation(conn, data)
-            request_cotation = get_request_cotation(
-                conn,
-                get_selected_request_cotation_id(conn)
+            repo = SQLAlchemyRepository(conn)
+            repo.store_cotation(data)
+            request_cotation = repo.get_request_cotation(
+                repo.get_selected_request_cotation_id()
             )
             socketio.emit("reload_page")
             
@@ -60,8 +51,9 @@ def webhook():
 @app.get("/")
 def list_request_cotations():
     with engine.begin() as conn:
-        id = get_selected_request_cotation_id(conn)
-        request_cotations = get_request_cotations_with_cotations_count(conn)
+        repo = SQLAlchemyRepository(conn)
+        id = repo.get_selected_request_cotation_id()
+        request_cotations = repo.get_request_cotations_with_cotations_count()
 
     return render_template(
         "request_cotation_list.html",
@@ -75,15 +67,16 @@ def create_request_cotations():
     quantity = request.form.get("quantity", None)
 
     with engine.begin() as conn:
-        request_cotation_id = store_request_cotation(conn, title, quantity)
-        set_selected_request_cotation_id(conn, request_cotation_id)
+        repo = SQLAlchemyRepository(conn)
+        request_cotation_id = repo.store_request_cotation(title, quantity)
+        repo.set_selected_request_cotation_id(request_cotation_id)
     
     return redirect(url_for("list_request_cotations"))
 
 @app.get("/request/<int:request_cotation_id>")
 def list_cotations(request_cotation_id: int):
     with engine.begin() as conn:
-        request_cotation_with_cotations = get_request_cotation_with_related_cotations(conn, request_cotation_id)
+        request_cotation_with_cotations = SQLAlchemyRepository(conn).get_request_cotation_with_related_cotations(request_cotation_id)
     
     print(request_cotation_with_cotations)
     return render_template(
@@ -95,7 +88,7 @@ def list_cotations(request_cotation_id: int):
 def generate_cotation_csv(request_cotation_id: int):
     try:
         with engine.begin() as conn:
-            request_cotation_with_cotations = get_request_cotation_with_related_cotations(conn, request_cotation_id)
+            request_cotation_with_cotations = SQLAlchemyRepository(conn).get_request_cotation_with_related_cotations(request_cotation_id)
             path = write_cotations_csv(request_cotation_with_cotations) 
     except Exception as e:
         return jsonify({"message": f"we had an error: {e.message}"}), 400
@@ -105,7 +98,7 @@ def generate_cotation_csv(request_cotation_id: int):
 @socketio.event
 def update_selected_request_cotation(data):
     with engine.begin() as conn:
-        change_selected_request_cotation(conn, data["id"])
+        SQLAlchemyRepository(conn).change_selected_request_cotation(data["id"])
     emit("reload_page")
  
 @app.cli.command("start_db")

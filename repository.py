@@ -5,83 +5,117 @@ from schema import (
     request_cotations_table,
     selected_request_cotation_table
 ) 
-def check_if_selected_request_cotation_exists(conn: Connection):
-    """
-    selected request cotation must to manage a single instance
-    referencing wich is the active request cotation.
-    Help to differentiate when it's necessary create or update the single instance 
-    """
-    stmt = select(selected_request_cotation_table.c.request_cotation_id)
-    result = conn.execute(stmt)
-    return result.first()
 
-def change_selected_request_cotation(conn: Connection, request_cotation_id):
-    # raise exception if the request cotation dosen't exists
-    conn.execute(select(request_cotations_table).where(request_cotations_table.c.id==request_cotation_id)).one()
-    set_selected_request_cotation_id(conn, request_cotation_id)
+class SQLAlchemyRepository:
+    def __init__(self, conn: Connection):
+        self.conn = conn
 
-def get_selected_request_cotation_id(conn: Connection) -> int | None:
-    if selected_request_cotation := check_if_selected_request_cotation_exists(conn):
-        return selected_request_cotation.request_cotation_id
-    
-def set_selected_request_cotation_id(conn:Connection, request_cotation_id: int):
-    stmt = update(selected_request_cotation_table).values(request_cotation_id=request_cotation_id)
-    if not check_if_selected_request_cotation_exists(conn):
-        stmt = insert(selected_request_cotation_table).values(request_cotation_id=request_cotation_id)
-    conn.execute(stmt)
+    def check_if_selected_request_cotation_exists(self):
+        """
+        Check if a singleton instance exists in the selected request table.
+        
+        The table manages a single record referencing the currently active 
+        request quotation to determine whether to perform an insert or an update.
+        """
+        stmt = select(selected_request_cotation_table.c.request_cotation_id)
+        result = self.conn.execute(stmt)
+        return result.first()
 
-def store_request_cotation(conn:Connection, title: str, quantity: int) -> int:
-    stmt = insert(request_cotations_table).values(title=title, quantity=quantity)
-    result = conn.execute(stmt)
-    return result.inserted_primary_key[0]
+    def change_selected_request_cotation(self, request_cotation_id: int):
+        """
+        Change the active request quotation that new entries will be associated with.
+        
+        Raises exeception If the request quotation ID does not exist.
+        """
+        self.conn.execute(select(request_cotations_table).where(request_cotations_table.c.id==request_cotation_id)).one()
+        self.set_selected_request_cotation_id(request_cotation_id)
 
-def get_request_cotations_with_cotations_count(conn:Connection):
-    stmt = select(
-        request_cotations_table.c.id,
-        request_cotations_table.c.title,
-        request_cotations_table.c.quantity,
-        request_cotations_table.c.created,
-        func.count(cotations_table.c.id).label("cotation_count")
-    ).outerjoin(cotations_table, cotations_table.c.request_cotation_id == request_cotations_table.c.id).group_by(
-        request_cotations_table.c.id
-    )
-    result = conn.execute(stmt)
-    return result.fetchall()
+    def get_selected_request_cotation_id(self) -> int | None:
+        """
+        Retrieve the ID of the 'active' request quotation.
+        """
+        if selected_request_cotation := self.check_if_selected_request_cotation_exists():
+            return selected_request_cotation.request_cotation_id
+        
+    def set_selected_request_cotation_id(self, request_cotation_id: int):
+        """
+        Set the 'active' request quotation ID.
+        """
+        stmt = update(selected_request_cotation_table).values(request_cotation_id=request_cotation_id)
+        if not self.check_if_selected_request_cotation_exists():
+            stmt = insert(selected_request_cotation_table).values(request_cotation_id=request_cotation_id)
+        self.conn.execute(stmt)
 
-def get_request_cotation(conn: Connection, request_cotation_id: int):
-    return conn.execute(
-        select(request_cotations_table).where(request_cotations_table.c.id==request_cotation_id)
-    ).one()
+    def store_request_cotation(self, title: str, quantity: int) -> int:
+        """
+        Store a new request quotation instance and return its primary key.
+        """
+        stmt = insert(request_cotations_table).values(title=title, quantity=quantity)
+        result = self.conn.execute(stmt)
+        return result.inserted_primary_key[0]
 
-def get_request_cotation_with_related_cotations(conn: Connection, request_cotation_id: int) -> dict:
-    request_cotation = get_request_cotation(conn, request_cotation_id)
+    def get_request_cotations_with_cotations_count(self):
+        """
+        Retrieve all request quotations along with the count of their associated quotations.
+        """
+        stmt = select(
+            request_cotations_table.c.id,
+            request_cotations_table.c.title,
+            request_cotations_table.c.quantity,
+            request_cotations_table.c.created,
+            func.count(cotations_table.c.id).label("cotation_count")
+        ).outerjoin(cotations_table, cotations_table.c.request_cotation_id == request_cotations_table.c.id).group_by(
+            request_cotations_table.c.id
+        )
+        result = self.conn.execute(stmt)
+        return result.fetchall()
 
-    cotations = conn.execute(
-        select(cotations_table).where(
-            cotations_table.c.request_cotation_id==request_cotation_id
-        ).order_by(cotations_table.c.id.desc())
-    ).fetchall()
+    def get_request_cotation(self, request_cotation_id: int):
+        """
+        Retrieve a request quotation by ID.
+        Raises exception if the request cotation does not exists
+        """
+        return self.conn.execute(
+            select(request_cotations_table).where(request_cotations_table.c.id==request_cotation_id)
+        ).one()
 
-    return {"request": request_cotation, "cotations":cotations}
+    def get_request_cotation_with_related_cotations(self, request_cotation_id: int) -> dict:
+        """
+        Retrieve a single request quotation and all its associated child quotations.
+        """
+        request_cotation = self.get_request_cotation(request_cotation_id)
 
-def store_cotation(conn, cotation_data):
-    if selected_request_cotation_id := get_selected_request_cotation_id(conn):
-        try:
-            conn.execute(
-                insert(cotations_table).values(
-                    company_name=cotation_data["company_name"],
-                    company_url=cotation_data["company_url"],
-                    product_name=cotation_data["product_name"],
-                    product_url=cotation_data["product_url"],
-                    public_minimum_price=cotation_data["price_offered"],
-                    public_minimum_quantity=cotation_data["minimum_quantity"],
-                    request_cotation_id=selected_request_cotation_id
+        cotations = self.conn.execute(
+            select(cotations_table).where(
+                cotations_table.c.request_cotation_id==request_cotation_id
+            ).order_by(cotations_table.c.id.desc())
+        ).fetchall()
+
+        return {"request": request_cotation, "cotations":cotations}
+
+    def store_cotation(self, cotation_data):
+        """
+        Store an individual cuotation associated with the currently selected request.
+
+        Raises: If no active request is selected or if data integrity is violated.
+        """
+        if selected_request_cotation_id := self.get_selected_request_cotation_id():
+            try:
+                self.conn.execute(
+                    insert(cotations_table).values(
+                        company_name=cotation_data["company_name"],
+                        company_url=cotation_data["company_url"],
+                        product_name=cotation_data["product_name"],
+                        product_url=cotation_data["product_url"],
+                        public_minimum_price=cotation_data["price_offered"],
+                        public_minimum_quantity=cotation_data["minimum_quantity"],
+                        request_cotation_id=selected_request_cotation_id
+                    )
                 )
-            )
 
-        except KeyError as e:
-            raise Exception(f"data dosen't acomplish the required contract") 
-        except IntegrityError as e:
-            raise Exception("you have already registered this porduct at this request cotation")
-        return True
-    raise Exception("you must to generate a request cotation before to store individual cotations")
+            except KeyError as e:
+                raise Exception(f"data dosen't acomplish the required contract") 
+            except IntegrityError as e:
+                raise Exception("you have already registered this porduct at this request cotation")
+            return True
+        raise Exception("you must to generate a request cotation before to store individual cotations")
