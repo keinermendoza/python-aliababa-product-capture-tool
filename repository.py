@@ -57,7 +57,9 @@ def get_request_cotation_with_related_cotations(conn: Connection, request_cotati
     request_cotation = get_request_cotation(conn, request_cotation_id)
 
     cotations = conn.execute(
-        select(cotations_table).where(cotations_table.c.request_cotation_id==request_cotation_id)
+        select(cotations_table).where(
+            cotations_table.c.request_cotation_id==request_cotation_id
+        ).order_by(cotations_table.c.id.desc())
     ).fetchall()
 
     return {"request": request_cotation, "cotations":cotations}
