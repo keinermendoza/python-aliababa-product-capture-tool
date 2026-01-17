@@ -1,11 +1,11 @@
 from flask import Flask, jsonify, request, render_template, redirect, url_for
 from flask_cors import CORS
 from sqlalchemy import create_engine
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 from repository import (
     get_selected_request_cotation_id,
-    get_selected_request_cotation,
     set_selected_request_cotation_id,
+    change_selected_request_cotation,
     store_request_cotation,
     store_cotation,
     get_request_cotations_with_cotations_count,
@@ -34,23 +34,12 @@ def webhook():
     try:
         with engine.begin() as conn:
             store_cotation(conn, data)
-            request_cotation = get_selected_request_cotation(conn)
-            write_cotations_csv(request_cotation, data)
+            socketio.emit("reload_page")
     except Exception as e:
         print(e)
         return jsonify({"message": str(e)}), 400
 
     return jsonify({"message": "funciono!"})
-
-# @socketio.on('message')
-# def handle_message(data):
-#     print('received message: ' + data)
-
-# @app.get("/test-websockets")
-# def test_websockets():
-#     title = request.args.get("title")
-#     id = request.args.get("id")
-#     print(title, id)
 
 @app.get("/")
 def list_request_cotations():
@@ -67,9 +56,10 @@ def list_request_cotations():
 @app.post("/")
 def create_request_cotations():
     title = request.form.get("title", None)
+    quantity = request.form.get("quantity", None)
 
     with engine.begin() as conn:
-        request_cotation_id = store_request_cotation(conn, title)
+        request_cotation_id = store_request_cotation(conn, title, quantity)
         set_selected_request_cotation_id(conn, request_cotation_id)
     
     return redirect(url_for("list_request_cotations"))
@@ -85,12 +75,23 @@ def list_cotations(request_cotation_id: int):
         request_cotation_with_cotations=request_cotation_with_cotations
     )
 
-# @app.post("/request/<int:request_cotation_id>/select")
-# def select_request_cotations(request_cotation_id: int):
-    # get request cotation from servcies: raise error if not exists
-    # update value of unique selected request instance
-    # pass
+@app.post("/request/<int:request_cotation_id>/generate-cotation-csv")
+def generate_cotation_csv(request_cotation_id: int):
+    try:
+        with engine.begin() as conn:
+            request_cotation_with_cotations = get_request_cotation_with_related_cotations(conn, request_cotation_id)
+            path = write_cotations_csv(request_cotation_with_cotations) 
+    except Exception as e:
+        return jsonify({"message": f"we had an error: {e.message}"}), 400
 
+    return jsonify({"message": f"=D cotations csv generated at {path}"})
+
+@socketio.event
+def update_selected_request_cotation(data):
+    with engine.begin() as conn:
+        change_selected_request_cotation(conn, data["id"])
+    emit("reload_page")
+ 
 @app.cli.command("start_db")
 def start_db():
     from schema import metadata

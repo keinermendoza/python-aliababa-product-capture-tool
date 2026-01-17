@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>List Cotation Requests</title>
+    <style>
+        .btn-toogle-selected-request-cotation.selected {
+            background-color: blue;
+            color: white;
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -13,17 +19,23 @@
             <label for="title">Request Cotation Title</label>
             <input required id="title" type="text" name="title">
         </div>
-
+        <div>
+            <label for="quantity">Request Cotation quantity</label>
+            <input required id="quantity" type="number" name="quantity">
+        </div>
         <button>Save</button>
     </form>
 
     <section>
         <h2>Requests Cotations</h2>
+       
         <table>
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>created</th>
                     <th>Title</th>
+                    <th>Quantity</th>
                     <th>Cotations</th>
                     <th>Selected</th>
                 </tr>
@@ -32,17 +44,23 @@
                 {% for item in request_cotations %}
                 <tr>
                     <td>{{item.id}}</td>
+                    <td>{{item.created}}</td>
                     <td>
                         <a href="{{url_for('list_cotations', request_cotation_id=item.id)}}">
                         {{item.title}}
                         </a>
                     </td>
+                    <td>{{item.quantity}}</td>
                     <td>{{item.cotation_count}}</td>
 
                     {% if item.id == selected_request_cotation_id %}  
-                    <td>SELECTED</td>
+                    <td>
+                        <button class="btn-toogle-selected-request-cotation selected">SELECTED</button>
+                    </td>
                     {% else %}
-                    <td>-</td>
+                    <td>
+                        <button data-id="{{item.id}}" class="btn-toogle-selected-request-cotation">SELECT</button>
+                    </td>
                     {% endif %}
                 </tr>        
                 {% endfor %}
@@ -50,11 +68,22 @@
         </table>
     </section>
 
+    
     <script type="text/javascript" charset="utf-8">
-        var socket = io();
-        socket.on('connect', function() {
-            socket.emit('my event', {data: 'I\'m connected!'});
+        const socket = io();
+        socket.on('reload_page', function() {
+            window.location.reload();
         });
+
+        const btnsToogleSelectedRequest = Array.from(document.getElementsByClassName("btn-toogle-selected-request-cotation"));
+        btnsToogleSelectedRequest.forEach(btn => {
+            btn.onclick = () => updateCurrentRequestCotation(btn.dataset.id)
+        })
+
+        function updateCurrentRequestCotation(id) {
+            socket.emit("update_selected_request_cotation", {id});
+        }
+        
     </script>
 </body>
 </html>

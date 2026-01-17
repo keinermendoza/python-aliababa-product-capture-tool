@@ -15,15 +15,10 @@ def check_if_selected_request_cotation_exists(conn: Connection):
     result = conn.execute(stmt)
     return result.first()
 
-def get_selected_request_cotation(conn: Connection):
-    id = get_selected_request_cotation_id(conn)
-    print("id====", id)
-    if id is not None:
-        return conn.execute(
-            select(request_cotations_table).where(
-                request_cotations_table.c.id==id
-            )
-        ).first()
+def change_selected_request_cotation(conn: Connection, request_cotation_id):
+    # raise exception if the request cotation dosen't exists
+    conn.execute(select(request_cotations_table).where(request_cotations_table.c.id==request_cotation_id)).one()
+    set_selected_request_cotation_id(conn, request_cotation_id)
 
 def get_selected_request_cotation_id(conn: Connection) -> int | None:
     if selected_request_cotation := check_if_selected_request_cotation_exists(conn):
@@ -35,8 +30,8 @@ def set_selected_request_cotation_id(conn:Connection, request_cotation_id: int):
         stmt = insert(selected_request_cotation_table).values(request_cotation_id=request_cotation_id)
     conn.execute(stmt)
 
-def store_request_cotation(conn:Connection, title: str) -> int:
-    stmt = insert(request_cotations_table).values(title=title)
+def store_request_cotation(conn:Connection, title: str, quantity: int) -> int:
+    stmt = insert(request_cotations_table).values(title=title, quantity=quantity)
     result = conn.execute(stmt)
     return result.inserted_primary_key[0]
 
@@ -44,6 +39,7 @@ def get_request_cotations_with_cotations_count(conn:Connection):
     stmt = select(
         request_cotations_table.c.id,
         request_cotations_table.c.title,
+        request_cotations_table.c.quantity,
         request_cotations_table.c.created,
         func.count(cotations_table.c.id).label("cotation_count")
     ).outerjoin(cotations_table, cotations_table.c.request_cotation_id == request_cotations_table.c.id).group_by(

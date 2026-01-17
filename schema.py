@@ -24,6 +24,7 @@ request_cotations_table = Table(
     metadata,
     Column("id", Integer, primary_key=True),
     Column("title", String(50), CheckConstraint("title != ''"), unique=True, nullable=False),
+    Column("quantity", Integer, CheckConstraint("quantity > 0"), nullable=False),
     Column("created", DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP')),
 )
 

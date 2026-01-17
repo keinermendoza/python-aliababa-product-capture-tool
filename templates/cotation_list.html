@@ -7,8 +7,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
 </head>
 <body>
+    <p>
+        <a href="{{url_for('list_request_cotations')}}">Come back to request cotation list</a>
+    </p>
    <h1>Cotations for {{request_cotation_with_cotations.request.title}}</h1>
    <p>Created at {{request_cotation_with_cotations.request.created}}</p>
+    <div>
+        <button id="btn-generate-csv" data-url-endpoint="{{url_for('generate_cotation_csv', request_cotation_id=request_cotation_with_cotations.request.id)}}" >Generate CSV</button>
+    </div>
+    
+    <hr>
+    
     <table>
         <thead>
             <tr>
@@ -37,10 +46,23 @@
     </table>
 
     <script type="text/javascript" charset="utf-8">
-        var socket = io();
-        socket.on('connect', function() {
-            socket.emit('my event', {data: 'I\'m connected!'});
+        const socket = io();
+        socket.on('reload_page', function() {
+            window.location.reload();
         });
+
+        // generates csv 
+        const btnGenerateCsv = document.getElementById("btn-generate-csv");
+        const endpoint = btnGenerateCsv.dataset.urlEndpoint;
+        btnGenerateCsv.onclick = () => fetch(endpoint, {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            }
+        }).then(resp => resp.json())
+        .catch(e => alert("There was a problem with fetch petition: " + e.message))
+        .then(data => alert(data.message))
+
     </script>
 </body>
 </html>
