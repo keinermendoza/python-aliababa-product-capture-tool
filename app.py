@@ -38,16 +38,19 @@ def webhook():
     try:
         with engine.begin() as conn:
             store_cotation(conn, data)
-            id = get_selected_request_cotation_id(conn)
-            request_cotation = get_request_cotation(conn, id)
+            request_cotation = get_request_cotation(
+                conn,
+                get_selected_request_cotation_id(conn)
+            )
             socketio.emit("reload_page")
             
-            # copy_buyer_script_to_clipboard(
-            #     buyer_name=getenv("BUYER_NAME"),
-            #     buyer_address=getenv("BUYER_ADDRESS"),
-            #     quantity_requested=request_cotation.quantity,
-            #     prodcut_name=data["product_name"]
-            # )
+        copy_buyer_script_to_clipboard(
+            buyer_name=getenv("BUYER_NAME"),
+            buyer_address=getenv("BUYER_ADDRESS"),
+            quantity_requested=request_cotation.quantity,
+            product_name=data["product_name"]
+        )
+        
     except Exception as e:
         print("Exception was raised: ", e)
         return jsonify({"message": str(e)}), 400
