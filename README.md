@@ -17,6 +17,9 @@ Todas as *quotations* coletadas pela extensão **devem estar associadas a uma re
 
 ---
 
+
+
+
 ### 1. Iniciar o servidor Flask
 
 Certifique-se de que o servidor esteja em execução:
@@ -72,6 +75,8 @@ Após esses passos, a extensão estará instalada e pronta para uso.
    (não utilize páginas de listagem ou resultados de busca).
 
 3. Com a página do produto aberta, utilize a **extensão do Google Chrome**, conforme demonstrado no vídeo explicativo do projeto.
+
+https://github.com/user-attachments/assets/ee6fb04f-e7f6-42ea-a42d-6c351ec54549
 
 
 ## Visão Geral da Solução
