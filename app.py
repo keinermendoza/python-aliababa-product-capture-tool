@@ -29,16 +29,16 @@ def webhook():
     try:
         with engine.begin() as conn:
             repo = SQLAlchemyRepository(conn)
-            repo.store_cotation(data)
-            request_cotation = repo.get_request_cotation(
-                repo.get_selected_request_cotation_id()
+            repo.store_quotation(data)
+            request_for_quotation = repo.get_request_for_quotation_by_id(
+                repo.get_active_request_for_quotation_id()
             )
             socketio.emit("reload_page")
             
         copy_buyer_script_to_clipboard(
             buyer_name=getenv("BUYER_NAME"),
             buyer_address=getenv("BUYER_ADDRESS"),
-            quantity_requested=request_cotation.quantity,
+            quantity_requested=request_for_quotation.quantity,
             product_name=data["product_name"]
         )
         
@@ -52,12 +52,12 @@ def webhook():
 def list_request_cotations():
     with engine.begin() as conn:
         repo = SQLAlchemyRepository(conn)
-        id = repo.get_selected_request_cotation_id()
-        request_cotations = repo.get_request_cotations_with_cotations_count()
+        id = repo.get_active_request_for_quotation_id()
+        requests_with_quotations_count = repo.get_request_for_quotations_with_quotations_count()
 
     return render_template(
         "request_cotation_list.html",
-        request_cotations=request_cotations,
+        request_cotations=requests_with_quotations_count,
         selected_request_cotation_id=id
     )
 
@@ -68,17 +68,16 @@ def create_request_cotations():
 
     with engine.begin() as conn:
         repo = SQLAlchemyRepository(conn)
-        request_cotation_id = repo.store_request_cotation(title, quantity)
-        repo.set_selected_request_cotation_id(request_cotation_id)
+        request_for_quotations_id = repo.store_request_for_quotation(title, quantity)
+        repo.set_active_request_for_quotation_id(request_for_quotations_id)
     
     return redirect(url_for("list_request_cotations"))
 
 @app.get("/request/<int:request_cotation_id>")
 def list_cotations(request_cotation_id: int):
     with engine.begin() as conn:
-        request_cotation_with_cotations = SQLAlchemyRepository(conn).get_request_cotation_with_related_cotations(request_cotation_id)
+        request_cotation_with_cotations = SQLAlchemyRepository(conn).get_request_for_quotation_with_related_quotations_by_id(request_cotation_id)
     
-    print(request_cotation_with_cotations)
     return render_template(
         "cotation_list.html",
         request_cotation_with_cotations=request_cotation_with_cotations
@@ -88,7 +87,7 @@ def list_cotations(request_cotation_id: int):
 def generate_cotation_csv(request_cotation_id: int):
     try:
         with engine.begin() as conn:
-            request_cotation_with_cotations = SQLAlchemyRepository(conn).get_request_cotation_with_related_cotations(request_cotation_id)
+            request_cotation_with_cotations = SQLAlchemyRepository(conn).get_request_for_quotation_with_related_quotations_by_id(request_cotation_id)
             path = write_cotations_csv(request_cotation_with_cotations) 
     except Exception as e:
         return jsonify({"message": f"we had an error: {e.message}"}), 400
@@ -98,7 +97,7 @@ def generate_cotation_csv(request_cotation_id: int):
 @socketio.event
 def update_selected_request_cotation(data):
     with engine.begin() as conn:
-        SQLAlchemyRepository(conn).change_selected_request_cotation(data["id"])
+        SQLAlchemyRepository(conn).change_active_request_for_quotation(data["id"])
     emit("reload_page")
  
 @app.cli.command("start_db")
