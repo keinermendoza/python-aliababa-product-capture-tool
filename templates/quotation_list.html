@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>List Cotation Requests</title>
+    <title>Quotations for Requests {{request_for_quotation_with_related_quotations.request.title}}</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
 </head>
 <body>
     <p>
-        <a href="{{url_for('list_request_cotations')}}">Come back to request cotation list</a>
+        <a href="{{url_for('list_requests_for_quotations')}}">Come back to request for quotations list</a>
     </p>
-   <h1>Quotations for {{request_cotation_with_cotations.request.title}}</h1>
-   <p>Created at {{request_cotation_with_cotations.request.created}}</p>
+   <h1>Quotations for {{request_for_quotation_with_related_quotations.request.title}}</h1>
+   <p>Created at {{request_for_quotation_with_related_quotations.request.created}}</p>
     <div>
-        <button id="btn-generate-csv" data-url-endpoint="{{url_for('generate_cotation_csv', request_cotation_id=request_cotation_with_cotations.request.id)}}" >Generate CSV</button>
+        <button id="btn-generate-csv" data-url-endpoint="{{url_for('generate_quotations_csv', request_for_quotation_id=request_for_quotation_with_related_quotations.request.id)}}" >Generate CSV</button>
     </div>
     
     <hr>
@@ -29,17 +29,17 @@
             </tr>
         </thead>
         <tbody>
-            {% for cotation in request_cotation_with_cotations.cotations %}
+            {% for quotation in request_for_quotation_with_related_quotations.quotations %}
             <tr>
-                <td>{{cotation.id}}</td>
+                <td>{{quotation.id}}</td>
                 <td>
-                    <a href="{{cotation.company_url}}" target="_blank">{{cotation.company_name}}</a>
+                    <a href="{{quotation.company_url}}" target="_blank">{{quotation.company_name}}</a>
                 </td>
                 <td>
-                    <a href="{{cotation.product_url}}" target="_blank">{{cotation.product_name}}</a>
+                    <a href="{{quotation.product_url}}" target="_blank">{{quotation.product_name}}</a>
                 </td>
-                <td>{{cotation.public_minimum_price}}</td>
-                <td>{{cotation.public_minimum_quantity}}</td>
+                <td>{{quotation.public_minimum_price}}</td>
+                <td>{{quotation.public_minimum_quantity}}</td>
             </tr>        
             {% endfor %}
         </tbody>

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>List Cotation Requests</title>
+    <title>List Quotation Requests</title>
     <style>
-        .btn-toogle-selected-request-cotation.selected {
+        .btn-toogle-selected-request-quotation.selected {
             background-color: blue;
             color: white;
         }
@@ -14,20 +14,20 @@
 </head>
 <body>
     <form method="post">
-        <p>Create a new Request Cotation</p>
+        <p>Create a new Request Quotation</p>
         <div>
-            <label for="title">Request Cotation Title</label>
+            <label for="title">Request for Quotation Title</label>
             <input required id="title" type="text" name="title">
         </div>
         <div>
-            <label for="quantity">Request Cotation quantity</label>
+            <label for="quantity">Request for Quotation quantity</label>
             <input required id="quantity" type="number" name="quantity">
         </div>
         <button>Save</button>
     </form>
 
     <section>
-        <h2>Requests Cotations</h2>
+        <h2>Requests fir </h2>
        
         <table>
             <thead>
@@ -36,30 +36,30 @@
                     <th>created</th>
                     <th>Title</th>
                     <th>Quantity</th>
-                    <th>Cotations</th>
+                    <th>Quotations</th>
                     <th>Selected</th>
                 </tr>
             </thead>
             <tbody>
-                {% for item in request_cotations %}
+                {% for item in requests_with_quotations_count %}
                 <tr>
                     <td>{{item.id}}</td>
                     <td>{{item.created}}</td>
                     <td>
-                        <a href="{{url_for('list_cotations', request_cotation_id=item.id)}}">
+                        <a href="{{url_for('list_quotations', request_for_quotation_id=item.id)}}">
                         {{item.title}}
                         </a>
                     </td>
                     <td>{{item.quantity}}</td>
-                    <td>{{item.cotation_count}}</td>
+                    <td>{{item.quotation_count}}</td>
 
-                    {% if item.id == selected_request_cotation_id %}  
+                    {% if item.id == active_request_for_quotation_id %}  
                     <td>
-                        <button class="btn-toogle-selected-request-cotation selected">SELECTED</button>
+                        <button class="btn-toogle-selected-request-quotation selected">SELECTED</button>
                     </td>
                     {% else %}
                     <td>
-                        <button data-id="{{item.id}}" class="btn-toogle-selected-request-cotation">SELECT</button>
+                        <button data-id="{{item.id}}" class="btn-toogle-selected-request-quotation">SELECT</button>
                     </td>
                     {% endif %}
                 </tr>        
@@ -75,13 +75,13 @@
             window.location.reload();
         });
 
-        const btnsToogleSelectedRequest = Array.from(document.getElementsByClassName("btn-toogle-selected-request-cotation"));
-        btnsToogleSelectedRequest.forEach(btn => {
-            btn.onclick = () => updateCurrentRequestCotation(btn.dataset.id)
+        const btnsToogleActiveRequest = Array.from(document.getElementsByClassName("btn-toogle-selected-request-quotation"));
+        btnsToogleActiveRequest.forEach(btn => {
+            btn.onclick = () => updateCurrentRequestQuotation(btn.dataset.id)
         })
 
-        function updateCurrentRequestCotation(id) {
-            socket.emit("update_selected_request_cotation", {id});
+        function updateCurrentRequestQuotation(id) {
+            socket.emit("update_active_request_for_quotation", {id});
         }
         
     </script>

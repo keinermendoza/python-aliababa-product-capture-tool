@@ -7,10 +7,10 @@ from repository import SQLAlchemyRepository
 from sheets import write_cotations_csv
 from utils import copy_buyer_script_to_clipboard
 
+# config
 app = Flask(__name__)
 socketio = SocketIO(app)
 engine = create_engine("sqlite:///request_cotations.db", echo=False)
-
 CORS(
     app,
     resources={
@@ -22,6 +22,7 @@ CORS(
     methods=["POST", "OPTIONS"]
 )
 
+#routes
 @app.post("/webhook")
 def webhook():
     data = request.get_json()
@@ -49,16 +50,16 @@ def webhook():
     return jsonify({"message": "funciono!"})
 
 @app.get("/")
-def list_request_cotations():
+def list_requests_for_quotations():
     with engine.begin() as conn:
         repo = SQLAlchemyRepository(conn)
         id = repo.get_active_request_for_quotation_id()
         requests_with_quotations_count = repo.get_request_for_quotations_with_quotations_count()
 
     return render_template(
-        "request_cotation_list.html",
-        request_cotations=requests_with_quotations_count,
-        selected_request_cotation_id=id
+        "request_for_quotation_list.html",
+        requests_with_quotations_count=requests_with_quotations_count,
+        active_request_for_quotation_id=id
     )
 
 @app.post("/")
@@ -71,35 +72,37 @@ def create_request_cotations():
         request_for_quotations_id = repo.store_request_for_quotation(title, quantity)
         repo.set_active_request_for_quotation_id(request_for_quotations_id)
     
-    return redirect(url_for("list_request_cotations"))
+    return redirect(url_for("list_requests_for_quotations"))
 
-@app.get("/request/<int:request_cotation_id>")
-def list_cotations(request_cotation_id: int):
+@app.get("/request/<int:request_for_quotation_id>")
+def list_quotations(request_for_quotation_id: int):
     with engine.begin() as conn:
-        request_cotation_with_cotations = SQLAlchemyRepository(conn).get_request_for_quotation_with_related_quotations_by_id(request_cotation_id)
+        request_for_quotation_with_related_quotations = SQLAlchemyRepository(conn).get_request_for_quotation_with_related_quotations_by_id(request_for_quotation_id)
     
     return render_template(
-        "cotation_list.html",
-        request_cotation_with_cotations=request_cotation_with_cotations
+        "quotation_list.html",
+        request_for_quotation_with_related_quotations=request_for_quotation_with_related_quotations
     )
 
-@app.post("/request/<int:request_cotation_id>/generate-cotation-csv")
-def generate_cotation_csv(request_cotation_id: int):
+@app.post("/request/<int:request_for_quotation_id>/generate-cotation-csv")
+def generate_quotations_csv(request_for_quotation_id: int):
     try:
         with engine.begin() as conn:
-            request_cotation_with_cotations = SQLAlchemyRepository(conn).get_request_for_quotation_with_related_quotations_by_id(request_cotation_id)
-            path = write_cotations_csv(request_cotation_with_cotations) 
+            request_for_quotation_with_related_quotations = SQLAlchemyRepository(conn).get_request_for_quotation_with_related_quotations_by_id(request_for_quotation_id)
+            path = write_cotations_csv(request_for_quotation_with_related_quotations) 
     except Exception as e:
         return jsonify({"message": f"we had an error: {e.message}"}), 400
 
     return jsonify({"message": f"=D cotations csv generated at {path}"})
 
+# events
 @socketio.event
-def update_selected_request_cotation(data):
+def update_active_request_for_quotation(data):
     with engine.begin() as conn:
         SQLAlchemyRepository(conn).change_active_request_for_quotation(data["id"])
     emit("reload_page")
  
+# flask commands
 @app.cli.command("start_db")
 def start_db():
     from schema import metadata

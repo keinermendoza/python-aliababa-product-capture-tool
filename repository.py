@@ -34,8 +34,8 @@ class SQLAlchemyRepository:
         """
         Retrieve the ID of the 'active' request quotation.
         """
-        if active_request_cotation := self.check_if_active_request_for_quotation_exists():
-            return active_request_cotation.request_for_quotation_id
+        if active_request_for_quotation := self.check_if_active_request_for_quotation_exists():
+            return active_request_for_quotation.request_for_quotation_id
         
     def set_active_request_for_quotation_id(self, request_for_quotation_id: int):
         """
@@ -63,7 +63,7 @@ class SQLAlchemyRepository:
             request_for_quotations_table.c.title,
             request_for_quotations_table.c.quantity,
             request_for_quotations_table.c.created,
-            func.count(quotations_table.c.id).label("cotation_count")
+            func.count(quotations_table.c.id).label("quotation_count")
         ).outerjoin(quotations_table, quotations_table.c.request_for_quotation_id == request_for_quotations_table.c.id).group_by(
             request_for_quotations_table.c.id
         )
@@ -73,7 +73,7 @@ class SQLAlchemyRepository:
     def get_request_for_quotation_by_id(self, request_for_quotation_id: int):
         """
         Retrieve a request quotation by ID.
-        Raises exception if the request cotation does not exists
+        Raises exception if the request for quotation does not exists
         """
         return self.conn.execute(
             select(request_for_quotations_table).where(request_for_quotations_table.c.id==request_for_quotation_id)
@@ -91,7 +91,7 @@ class SQLAlchemyRepository:
             ).order_by(quotations_table.c.id.desc())
         ).fetchall()
 
-        return {"request": request_for_quotation, "cotations":quotations}
+        return {"request": request_for_quotation, "quotations":quotations}
 
     def store_quotation(self, quotation_data):
         """
