@@ -19,8 +19,8 @@ from sqlalchemy import (
 
 metadata = MetaData()
 
-request_cotations_table = Table(
-    "request_cotations",
+request_for_quotations_table = Table(
+    "request_for_quotations",
     metadata,
     Column("id", Integer, primary_key=True),
     Column("title", String(50), CheckConstraint("title != ''"), unique=True, nullable=False),
@@ -28,14 +28,14 @@ request_cotations_table = Table(
     Column("created", DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP')),
 )
 
-selected_request_cotation_table = Table(
-    "selected_request_cotation",
+active_request_for_quotations_table = Table(
+    "active_request_for_quotations",
     metadata,
-    Column("request_cotation_id", Integer, ForeignKey('request_cotations.id', ondelete='CASCADE'), nullable=False)
+    Column("request_for_quotation_id", Integer, ForeignKey('request_for_quotations.id', ondelete='CASCADE'), nullable=False)
 )
 
-cotations_table = Table(
-    "cotations",
+quotations_table = Table(
+    "quotations",
     metadata,
     Column("id", Integer, primary_key=True),
     Column("created", DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP')),
@@ -45,6 +45,10 @@ cotations_table = Table(
     Column("product_url", String(300), CheckConstraint("product_url != ''"), nullable=False),
     Column("public_minimum_price", String(20), nullable=True),
     Column("public_minimum_quantity", String(300), nullable=True),
-    Column("request_cotation_id", Integer, ForeignKey('request_cotations.id', ondelete='CASCADE'), nullable=False),
-    UniqueConstraint("request_cotation_id", 'product_url', 'company_name', name='uix_cotation_company_and_product_url')
+    Column("request_for_quotation_id", Integer, ForeignKey('request_for_quotations.id', ondelete='CASCADE'), nullable=False),
+    Column("seller_name", String(50), nullable=True),
+    Column("cheapest_shipping_company", String(8), nullable=True),
+    Column("cheapest_shipping_cost", Numeric(8, 2), nullable=True),
+    Column("unit_product_price_offered", Numeric(8, 2), nullable=True),
+    UniqueConstraint("request_for_quotation_id", 'product_name', 'company_name', name='uix_cotation_company_and_product_names')
 )
