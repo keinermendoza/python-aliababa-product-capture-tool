@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Quotation #{{quotation.id}}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <style>
+        * { box-sizing: border-box}
+        input { 
+            width:100%;
+            margin-block:0.25rem;
+            padding:0.25rem;
+        }
+        .btn-save {
+            font-size: 1.75rem;
+            border-radius: 0.35rem;
+            padding: 0.3rem 0.5rem;
+            color: white;
+            background-color: blue;
+            cursor: pointer;
+        }
+        .flex-start {
+            display: flex;
+            justify-content: start;
+            align-items:center;
+            gap: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <p>
+        <a href="{{url_for('list_quotations', request_for_quotation_id=quotation.request_for_quotation_id)}}">Come back to quotations list</a>
+    </p>
+    <div class="flex-start">
+        <h1>Quotation #{{quotation.id}}</h1>
+        <button form="edit-quotation" class="btn-save">Save</button>
+    </div>
+   <p>Created at {{quotation.created}}</p>
+    
+    <hr>
+    <form id="edit-quotation" method="post">
+        <p>
+            company_name: <input type="text" name="company_name" value="{% if quotation.company_name %}{{quotation.company_name}}{% endif %}" />
+        </p>
+        <p>
+            company_url: <input type="text" name="company_url" value="{% if quotation.company_url %}{{quotation.company_url}}{% endif %}" />
+        </p>
+        <p>
+            product_name: <input type="text" name="product_name" value="{% if quotation.product_name %}{{quotation.product_name}}{% endif %}" />
+        </p>
+        <p>
+            product_url: <input type="text" name="product_url" value="{% if quotation.product_url %}{{quotation.product_url}}{% endif %}" />
+        </p>
+        <p>
+            request_for_quotation_id: <input type="text" name="request_for_quotation_id" value="{% if quotation.request_for_quotation_id %}{{quotation.request_for_quotation_id}}{% endif %}" />
+        </p>
+        <p>
+            public_minimum_price: <input type="text" name="public_minimum_price" value="{% if quotation.public_minimum_price %}{{quotation.public_minimum_price}}{% endif %}" />
+        </p>
+        <p>
+            public_minimum_quantity: <input type="text" name="public_minimum_quantity" value="{% if quotation.public_minimum_quantity %}{{quotation.public_minimum_quantity}}{% endif %}" />
+        </p>
+        <p>
+            seller_name: <input type="text" name="seller_name" value="{% if quotation.seller_name %}{{quotation.seller_name}}{% endif %}" />
+        </p>
+        <p>
+            cheapest_shipping_company: <input type="text" name="cheapest_shipping_company" value="{% if quotation.cheapest_shipping_company %}{{quotation.cheapest_shipping_company}}{% endif %}" />
+        </p>
+        <p>
+            cheapest_shipping_cost: <input type="text" name="cheapest_shipping_cost" value="{% if quotation.cheapest_shipping_cost %}{{quotation.cheapest_shipping_cost}}{% endif %}" />
+        </p>
+        <p>
+            unit_product_price_offered: <input type="text" name="unit_product_price_offered" value="{% if quotation.unit_product_price_offered %}{{quotation.unit_product_price_offered}}{% endif %}" />
+        </p>
+    </form>
+    
+</body>
+</html>

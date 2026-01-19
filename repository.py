@@ -1,4 +1,4 @@
-from sqlalchemy import func, select, insert, update, Connection
+from sqlalchemy import func, select, insert, update, Connection, Row
 from sqlalchemy.exc import IntegrityError
 from schema import (
     quotations_table,
@@ -119,3 +119,38 @@ class SQLAlchemyRepository:
                 raise Exception("you have already registered this porduct at this request for quotation")
             return True
         raise Exception("you must to generate a request for quotation before to store individual quotations")
+    
+    def get_quotation_by_id(self, quotation_id:int) -> Row:
+        return self.conn.execute(
+            select(quotations_table).where(quotations_table.c.id==quotation_id)
+        ).one()
+    
+    def update_quotation(
+            self,
+            quotation: Row,
+            data: dict
+        ) -> None:
+
+        editable_fields = [
+            "public_minimum_price",
+            "public_minimum_quantity",
+            "seller_name",
+            "cheapest_shipping_company",
+            "cheapest_shipping_cost",
+            "unit_product_price_offered",
+        ]
+        
+        values_to_updata = {}
+
+        # fill the empty fields with old instance data
+        for key in editable_fields:
+            if not data.get(key):
+                values_to_updata[key] = quotation._mapping[key]
+            else:
+                values_to_updata[key] = data[key]
+
+        self.conn.execute(
+            update(quotations_table)
+            .where(quotations_table.c.id==quotation.id)
+            .values(values_to_updata)
+        )

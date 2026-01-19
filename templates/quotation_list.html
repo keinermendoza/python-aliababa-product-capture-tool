@@ -21,25 +21,35 @@
     <table>
         <thead>
             <tr>
-                <th>ID</th>
+                <th>ID / Edit</th>
                 <th>Company</th>
                 <th>Product</th>
                 <th>Posted Min Price</th>
                 <th>Posted Min Qnt</th>
+                <th>seller_name</th>
+                <th>cheapest_shipping_company</th>
+                <th>cheapest_shipping_cost</th>
+                <th>unit_product_price_offered</th>
             </tr>
         </thead>
         <tbody>
             {% for quotation in request_for_quotation_with_related_quotations.quotations %}
             <tr>
-                <td>{{quotation.id}}</td>
                 <td>
-                    <a href="{{quotation.company_url}}" target="_blank">{{quotation.company_name}}</a>
+                    <a href="{{url_for('edit_quotation', quotation_id=quotation.id)}}">{{quotation.id}}</a>
                 </td>
                 <td>
-                    <a href="{{quotation.product_url}}" target="_blank">{{quotation.product_name}}</a>
+                    <a href="{{quotation.company_url}}" target="_blank">{{quotation.company_name[0:30]}}</a>
+                </td>
+                <td>
+                    <a href="{{quotation.product_url}}" target="_blank">{{quotation.product_name[0:30]}}</a>
                 </td>
                 <td>{{quotation.public_minimum_price}}</td>
                 <td>{{quotation.public_minimum_quantity}}</td>
+                <td>{{quotation.seller_name}}</td>
+                <td>{{quotation.cheapest_shipping_company}}</td>
+                <td>{{quotation.cheapest_shipping_cost}}</td>
+                <td>{{quotation.unit_product_price_offered}}</td>
             </tr>        
             {% endfor %}
         </tbody>

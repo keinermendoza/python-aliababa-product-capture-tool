@@ -95,6 +95,43 @@ def generate_quotations_csv(request_for_quotation_id: int):
 
     return jsonify({"message": f"=D cotations csv generated at {path}"})
 
+@app.get("/quotation/<int:quotation_id>")
+def edit_quotation(quotation_id: int):
+    quotation = None
+    try:
+        with engine.begin() as conn:
+            quotation = SQLAlchemyRepository(conn).get_quotation_by_id(quotation_id)
+    # TODO: replace for custom Exception as QuotationNotFound
+    except Exception as e:
+        # TODO: replace for emit event
+        # - also add event listener for show card with exception message in client
+        print(str(e)) 
+
+    return render_template(
+        "quotation_edit.html",
+        quotation=quotation
+    )
+
+@app.post("/quotation/<int:quotation_id>")
+def update_quotation(quotation_id: int):
+    try:
+        with engine.begin() as conn:
+            repo = SQLAlchemyRepository(conn)
+            quotation = repo.get_quotation_by_id(quotation_id)
+            repo.update_quotation(
+                quotation=quotation,
+                data=request.form   
+            )
+
+    # TODO: replace for custom Exception as QuotationNotFound
+    except Exception as e:
+        # TODO: replace for emit event
+        # - also add event listener for show card with exception message in client
+        print(str(e)) 
+
+    return redirect(url_for("edit_quotation", quotation_id=quotation.id))
+
+
 # events
 @socketio.event
 def update_active_request_for_quotation(data):
