@@ -4,7 +4,7 @@ from flask_cors import CORS
 from sqlalchemy import create_engine
 from flask_socketio import SocketIO, emit
 from repository import SQLAlchemyRepository 
-from sheets import write_cotations_csv
+from sheets import write_quotations_csv
 from utils import copy_buyer_script_to_clipboard
 
 # config
@@ -92,9 +92,10 @@ def generate_quotations_csv(request_for_quotation_id: int):
     try:
         with engine.begin() as conn:
             request_for_quotation_with_related_quotations = SQLAlchemyRepository(conn).get_request_for_quotation_and_filter_its_related_quotations_by_id(request_for_quotation_id)
-            path = write_cotations_csv(request_for_quotation_with_related_quotations) 
+            path = write_quotations_csv(request_for_quotation_with_related_quotations) 
     except Exception as e:
-        return jsonify({"message": f"we had an error: {e.message}"}), 400
+        print(str(e))
+        return jsonify({"message": f"we had an error: {str(e)}"}), 400
 
     return jsonify({"message": f"=D cotations csv generated at {path}"})
 

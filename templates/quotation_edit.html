@@ -57,7 +57,7 @@
     <form class="row g-3" id="edit-quotation" method="post">
     <div class="col-md-3">
         <label for="seller_name" class="form-label">seller_name</label>
-        <input value="{% if quotation.seller_name %}{{quotation.seller_name}}{% endif %}" type="text" name="public_minimum_price" class="form-control" id="public_minimum_price">
+        <input value="{% if quotation.seller_name %}{{quotation.seller_name}}{% endif %}" type="text" name="seller_name" class="form-control" id="public_minimum_price">
     </div>
     <div class="col-md-3">
         <label for="public_minimum_price" class="form-label">public_minimum_price</label>
@@ -65,19 +65,19 @@
     </div>
     <div class="col-md-3">
         <label for="public_minimum_quantity" class="form-label">public_minimum_quantity</label>
-        <input value="{% if quotation.public_minimum_quantity %}{{quotation.public_minimum_quantity}}{% endif %}" type="text" class="form-control" id="public_minimum_price">
+        <input value="{% if quotation.public_minimum_quantity %}{{quotation.public_minimum_quantity}}{% endif %}" name="public_minimum_quantity" type="text" class="form-control" id="public_minimum_price">
     </div>
     <div class="col-md-3">
         <label for="unit_product_price_offered" class="form-label">unit_product_price_offered</label>
-        <input value="{% if quotation.unit_product_price_offered %}{{quotation.unit_product_price_offered}}{% endif %}" type="number" min="0.01" step="0.01" class="form-control" id="public_minimum_price">
+        <input value="{% if quotation.unit_product_price_offered %}{{quotation.unit_product_price_offered}}{% endif %}" name="unit_product_price_offered" type="number" min="0.01" step="0.01" class="form-control" id="public_minimum_price">
     </div>
     <div class="col-md-6">
         <label for="cheapest_shipping_company" class="form-label">cheapest_shipping_company</label>
-        <input value="{% if quotation.cheapest_shipping_company %}{{quotation.cheapest_shipping_company}}{% endif %}" type="text" class="form-control" id="public_minimum_price">
+        <input value="{% if quotation.cheapest_shipping_company %}{{quotation.cheapest_shipping_company}}{% endif %}" name="cheapest_shipping_company" type="text" class="form-control" id="public_minimum_price">
     </div>
     <div class="col-md-6">
         <label for="cheapest_shipping_cost" class="form-label">cheapest_shipping_cost</label>
-        <input value="{% if quotation.cheapest_shipping_cost %}{{quotation.cheapest_shipping_cost}}{% endif %}" type="number" min="0.1" step="0.1" name="public_minimum_price" class="form-control" id="public_minimum_price">
+        <input value="{% if quotation.cheapest_shipping_cost %}{{quotation.cheapest_shipping_cost}}{% endif %}" name="cheapest_shipping_cost" type="number" min="0.01" step="0.01" name="public_minimum_price" class="form-control" id="public_minimum_price">
     </div>
     
     <div class="col-12">
