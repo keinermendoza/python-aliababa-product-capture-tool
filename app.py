@@ -143,11 +143,29 @@ def update_active_request_for_quotation(data):
         SQLAlchemyRepository(conn).change_active_request_for_quotation(data["id"])
     emit("reload_page")
  
-# flask commands
+# custom flask commands
 @app.cli.command("start_db")
 def start_db():
     from schema import metadata
     metadata.create_all(engine)
+
+@app.cli.command("start_and_seed_db")
+def start_and_seed_db():
+    """
+    create and intitialize database using fake data 
+    """
+    from schema import metadata
+    from fake import fake_request_for_quotations 
+    metadata.create_all(engine)
+
+    with engine.begin() as conn:
+        repo =  SQLAlchemyRepository(conn)
+        for request in fake_request_for_quotations:
+            request_id = repo.store_request_for_quotation(**request["request"])
+            repo.set_active_request_for_quotation_id(request_id)
+            for quotation in request["quotations"]:
+                repo.store_quotation(quotation)
+
 
 if __name__=="__main__":
     socketio.run(app)

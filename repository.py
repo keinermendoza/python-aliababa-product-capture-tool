@@ -117,14 +117,16 @@ class SQLAlchemyRepository:
                         company_url=quotation_data["company_url"],
                         product_name=quotation_data["product_name"],
                         product_url=quotation_data["product_url"],
-                        public_minimum_price=quotation_data["price_offered"],
-                        public_minimum_quantity=quotation_data["minimum_quantity"],
+                        # TODO: change data key in chrome extension
+                        public_minimum_price = quotation_data.get("price_offered", quotation_data.get("public_minimum_price")),
+                        public_minimum_quantity = quotation_data.get("minimum_quantity",  quotation_data.get("public_minimum_quantity")),
+                        # end TODO
                         request_for_quotation_id=active_request_for_quotation_id
                     )
                 )
 
             except KeyError as e:
-                raise Exception(f"data dosen't acomplish the required contract") 
+                raise Exception(f"data dosen't acomplish the required contract: {str(e)}") 
             except IntegrityError as e:
                 raise Exception("you have already registered this porduct at this request for quotation")
             return True
