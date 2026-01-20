@@ -17,19 +17,69 @@ Todas as *quotations* coletadas pela extensão **devem estar associadas a uma re
 
 ---
 
+### Instalação
 
-
-
-### 1. Iniciar o servidor Flask
-
-Certifique-se de que o servidor esteja em execução:
+#### Acesse a pasta do projeto
+Entre no diretório principal onde o código foi clonado.
 
 ```bash
 cd python-aliababa-product-capture-tool
+```
+
+#### Crie o ambiente virtual 
+Isso isola as dependências do projeto para não interferir no seu sistema.
+
+```bash
 python -m venv venv
+```
+
+#### Ative o ambiente virtual:
+
+- No Linux/Mac
+
+```bash
 source venv/bin/activate
+```
+
+- No Windows (PowerShell):
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+#### Instale as dependências
+Baixa e instala todos os pacotes necessários (como Flask e SQLAlchemy).
+
+```bash
 pip install -r requirements.txt
+```
+
+#### Inicialize o Banco de Dados
+
+Dependendo do seu objetivo no projeto, escolha uma das opções abaixo para preparar o banco de dados:
+
+##### Uso da App ou Desenvolvimento da Extensão
+Se você pretende capturar dados reais usando a extensão do Chrome ou quer testar a aplicação do zero, crie um banco de dados vazio:
+
+```bash
 flask start_db
+```
+> Use esta opção se você for instalar a extensão para capturar produtos diretamente do Alibaba.
+
+##### Desenvolvimento Backend (Sem Extensão)
+Se você quer contribuir para o código da aplicação (Python/Flask) sem precisar instalar a extensão ou capturar dados manualmente, utilize o comando de seeding:
+
+```bash
+flask start_and_seed_db
+```
+> O banco de dados será criado e preenchido automaticamente com dados fictícios (sportive shoes, smartwatches, etc.), permitindo que você veja as funcionalidades da aplicação imediatamente.
+imento:
+
+
+#### Execute a aplicação
+Inicia o servidor de desenvolvimento do Flask.
+
+```bash
 flask run
 ```
 
@@ -37,7 +87,8 @@ A aplicação web ficará disponível localmente (por padrão em `http://localho
 
 ---
 
-### 2. Criar uma Request for Quotation
+### Criar uma Request for Quotation
+> Caso tenha inicializado o banco de dados com o comando `start_and_seed_db` e pretenda contribuir apenas com o desenvolvimento do sistema, esta seção é opcional. 
 
 1. Acesse a aplicação web local no navegador.
 2. Na tela principal, crie uma nova **Request for Quotation**, informando:
@@ -50,7 +101,9 @@ A extensão sempre associará os dados coletados à request ativa no momento do 
 
 ---
 
-### 3. Instalar a extensão do Google Chrome
+### Instalar a extensão do Google Chrome
+> Caso tenha inicializado o banco de dados com o comando `start_and_seed_db` e pretenda contribuir apenas com o desenvolvimento do sistema, esta seção é opcional. 
+
 
 1. Abra o Google Chrome.
 2. Acesse:
@@ -65,7 +118,9 @@ Após esses passos, a extensão estará instalada e pronta para uso.
 
 ---
 
-### 4. Utilizar a extensão para coletar dados
+### Utilizar a extensão para coletar dados
+> Caso tenha inicializado o banco de dados com o comando `start_and_seed_db` e pretenda contribuir apenas com o desenvolvimento do sistema, esta seção é opcional. 
+
 
 1. Certifique-se de que:
    - O servidor Flask esteja em execução.
@@ -112,7 +167,8 @@ O sistema é composto por várias partes que trabalham de forma integrada:
 │   ├── quotation_edit.html
 │   ├── quotation_list.html
 │   └── request_for_quotation_list.html
-└── utils.py
+├── utils.py
+└── fake.py
 ```
 
 ---
