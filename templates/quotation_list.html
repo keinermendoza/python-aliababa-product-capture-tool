@@ -28,8 +28,8 @@ body { padding: 2rem}
 
     <form class="card p-4 my-4">
         <div class="input-group">
+            <input name="query" value="{% if request.args.query %}{{request.args.query}}{% endif %}" type="text" class="form-control" id="search" aria-describedby="search-description">
             <button class="btn btn-primary">Search</button>
-            <input name="query" type="text" class="form-control" id="search" aria-describedby="search-description">
         </div>
 
         <div id="search-description" class="form-text mt-2">

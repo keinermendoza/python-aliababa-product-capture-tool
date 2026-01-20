@@ -76,8 +76,11 @@ def create_request_cotations():
 
 @app.get("/request/<int:request_for_quotation_id>")
 def list_quotations(request_for_quotation_id: int):
+    query = request.args.get("query", None) 
     with engine.begin() as conn:
-        request_for_quotation_with_related_quotations = SQLAlchemyRepository(conn).get_request_for_quotation_with_related_quotations_by_id(request_for_quotation_id)
+        request_for_quotation_with_related_quotations = SQLAlchemyRepository(
+            conn
+        ).get_request_for_quotation_and_filter_its_related_quotations_by_id(request_for_quotation_id, query)
     
     return render_template(
         "quotation_list.html",
@@ -88,7 +91,7 @@ def list_quotations(request_for_quotation_id: int):
 def generate_quotations_csv(request_for_quotation_id: int):
     try:
         with engine.begin() as conn:
-            request_for_quotation_with_related_quotations = SQLAlchemyRepository(conn).get_request_for_quotation_with_related_quotations_by_id(request_for_quotation_id)
+            request_for_quotation_with_related_quotations = SQLAlchemyRepository(conn).get_request_for_quotation_and_filter_its_related_quotations_by_id(request_for_quotation_id)
             path = write_cotations_csv(request_for_quotation_with_related_quotations) 
     except Exception as e:
         return jsonify({"message": f"we had an error: {e.message}"}), 400

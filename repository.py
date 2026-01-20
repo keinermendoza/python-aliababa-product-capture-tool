@@ -1,4 +1,4 @@
-from sqlalchemy import func, select, insert, update, Connection, Row
+from sqlalchemy import func, select, insert, update, or_, Connection, Row
 from sqlalchemy.exc import IntegrityError
 from schema import (
     quotations_table,
@@ -79,16 +79,26 @@ class SQLAlchemyRepository:
             select(request_for_quotations_table).where(request_for_quotations_table.c.id==request_for_quotation_id)
         ).one()
 
-    def get_request_for_quotation_with_related_quotations_by_id(self, request_for_quotation_id: int) -> dict:
+    def get_request_for_quotation_and_filter_its_related_quotations_by_id(self, request_for_quotation_id: int, query_term: str = None) -> dict:
         """
         Retrieve a single request quotation and all its associated child quotations.
         """
         request_for_quotation = self.get_request_for_quotation_by_id(request_for_quotation_id)
 
-        quotations = self.conn.execute(
-            select(quotations_table).where(
+        quotations_stmt = select(quotations_table).where(
                 quotations_table.c.request_for_quotation_id==request_for_quotation_id
-            ).order_by(quotations_table.c.id.desc())
+            )
+
+        if query_term:
+            quotations_stmt = quotations_stmt.where(
+                or_(
+                    quotations_table.c.seller_name.ilike(f"%{query_term}%"),
+                    quotations_table.c.company_name.ilike(f"%{query_term}%"),
+                    quotations_table.c.product_name.ilike(f"%{query_term}%"),
+                )
+            )
+        quotations = self.conn.execute(
+            quotations_stmt.order_by(quotations_table.c.id.desc())
         ).fetchall()
 
         return {"request": request_for_quotation, "quotations":quotations}
