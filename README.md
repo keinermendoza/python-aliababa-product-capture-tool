@@ -109,6 +109,7 @@ O sistema é composto por várias partes que trabalham de forma integrada:
 ├── schema.py
 ├── sheets.py
 ├── templates
+│   ├── quotation_edit.html
 │   ├── quotation_list.html
 │   └── request_for_quotation_list.html
 └── utils.py
@@ -157,6 +158,9 @@ Contém os templates HTML que compõem o frontend da aplicação.
 - **quotation_list.html**  
   Exibe todas as *quotations* relacionadas a uma *request for quotation* específica.  
   Esses dados são extraídos diretamente do site do Alibaba.
+
+- **quotation_edit.html**  
+  Exibe todas as propriedades de uma *quotation*, permitindo a edição de algumas delas.
 
 ---
 
