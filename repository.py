@@ -79,7 +79,12 @@ class SQLAlchemyRepository:
             select(request_for_quotations_table).where(request_for_quotations_table.c.id==request_for_quotation_id)
         ).one()
 
-    def get_request_for_quotation_and_filter_its_related_quotations_by_id(self, request_for_quotation_id: int, query_term: str = None) -> dict:
+    def get_request_for_quotation_and_filter_its_related_quotations_by_id(
+        self,
+        request_for_quotation_id: int,
+        query_term: str = None, 
+        fields_to_exclude: list[str] = None
+    ) -> dict:
         """
         Retrieve a single request quotation and all its associated child quotations.
         """
@@ -97,6 +102,17 @@ class SQLAlchemyRepository:
                     quotations_table.c.product_name.ilike(f"%{query_term}%"),
                 )
             )
+        
+        # REMOVE tuples WHERE column IS NOT NULL;
+        # uses SET to filter only by allowed fields
+        allowed_fields = {"seller_name", "cheapest_shipping_cost"}
+        fields_to_process = set(fields_to_exclude)
+        fields_to_filter = allowed_fields.intersection(fields_to_process)
+
+        for field in fields_to_filter: 
+            quotations_stmt = quotations_stmt.where(quotations_table.c[field].is_not(None))
+
+        # execute 
         quotations = self.conn.execute(
             quotations_stmt.order_by(quotations_table.c.id.desc())
         ).fetchall()
