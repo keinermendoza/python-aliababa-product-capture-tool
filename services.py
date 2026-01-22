@@ -67,6 +67,7 @@ def update_quotation(
             "cheapest_shipping_company",
             "cheapest_shipping_cost",
             "unit_product_price_offered",
+            "description",
             "status_id",
         ]
         

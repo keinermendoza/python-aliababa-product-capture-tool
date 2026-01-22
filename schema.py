@@ -57,6 +57,7 @@ quotations_table = Table(
     Column("cheapest_shipping_company", String(8), nullable=True),
     Column("cheapest_shipping_cost", Numeric(8, 2), nullable=True),
     Column("unit_product_price_offered", Numeric(8, 2), nullable=True),
+    Column("description", Text, nullable=True),
     Column("status_id", Integer, ForeignKey('quotation_status.id', ondelete='RESTRICT'), nullable=False),
     UniqueConstraint("request_for_quotation_id", 'product_name', 'company_name', name='uix_cotation_company_and_product_names')
 )
