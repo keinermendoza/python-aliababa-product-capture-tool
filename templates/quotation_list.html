@@ -23,7 +23,7 @@ body { padding: 2rem}
         </div>
     </div>
    <p>Created at {{request_for_quotation.created}}</p>
-    {% for status in available_status  %}
+    {% for status in quotation_status  %}
     <p>
     # {{status.id}} {{status.name}}
     </p>
@@ -43,9 +43,14 @@ body { padding: 2rem}
 
         <p class="form-text mt-3">Filter quotaiton by it's status</p>
         <div class="d-flex gap-3">
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="uncheck-status form-check-input" id="uncheck-status" autocomplete="off" {% if not request.args.getlist('quotation_status_id') %}checked{% endif %}>
+                <label class="form-check-label" for="uncheck-status">All</label>
+            </div>   
+            
             {% for status in quotation_status %}
             <div class="mb-3 form-check">
-                <input name="quotation_status_id" value="{{status.id}}" type="checkbox" class="form-check-input" id="quotation_status_id_{{status.id}}" autocomplete="off" {% if status.id in request.args.getlist('quotation_status_id') %}checked{% endif %}>
+                <input name="quotation_status_id" value="{{status.id}}" type="checkbox" class="checkbox-quotation-status form-check-input" id="quotation_status_id_{{status.id}}" autocomplete="off" {% if status.id|string in request.args.getlist('quotation_status_id') %}checked{% endif %}>
                 <label class="form-check-label" for="quotation_status_id_{{status.id}}">{{status.name}}</label>
             </div>            
             {% endfor %}
@@ -127,6 +132,24 @@ body { padding: 2rem}
         .catch(e => alert("There was a problem with fetch petition: " + e.message))
         .then(data => alert(data.message))
         
+        const checkboxUncheckQuotationStatus = document.getElementById("uncheck-status");
+        const checkboxQuotationStatusCollection = document.getElementsByClassName("checkbox-quotation-status");
+        const checkboxQuotationStatusArray = Array.from(checkboxQuotationStatusCollection)
+        // desmarcar checkbox 'all' quando utilizar qualquer outra das status checkbox
+        checkboxQuotationStatusArray.forEach(checkboxElement => {
+            checkboxElement.onchange = (e) => {
+                checkboxUncheckQuotationStatus.checked = false;
+            }
+        });
+
+        // desmarcar todas as all status checkbox quando marcar chekbox 'all' 
+        checkboxUncheckQuotationStatus.onchange = (event) => {
+            if (checkboxUncheckQuotationStatus.checked) {
+                checkboxQuotationStatusArray.forEach(checkboxElement => {
+                    checkboxElement.checked = false;
+                })
+            }
+        }
     </script>
 </body>
 </html>

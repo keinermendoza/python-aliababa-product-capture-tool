@@ -102,7 +102,7 @@ class SQLAlchemyRepository:
 
         if quotation_status:
             quotations_stmt = quotations_stmt.where(
-                quotation_status_table.c.status_id.in_(quotation_status)
+                quotations_table.c.status_id.in_(quotation_status)
             )
 
         if query_term:
