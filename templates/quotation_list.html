@@ -22,24 +22,13 @@ body { padding: 2rem}
             <button class="btn btn-warning" id="btn-generate-csv" data-url-endpoint="{{url_for('generate_quotations_csv', request_for_quotation_id=request_for_quotation.id)}}" >Generate CSV</button>
         </div>
     </div>
-   <p>Created at {{request_for_quotation.created}}</p>
-    {% for status in quotation_status  %}
-    <p>
-    # {{status.id}} {{status.name}}
-    </p>
-    {% endfor %}
-    
 
     <form class="card p-4 my-4">
-
+        <h2 class="h5">Filters</h2>
         <p id="search-description" class="form-text mb-2">
         Search for quotations using the salesperson's name, product name, or company name.
         </p>
-
-        <div class="input-group">
-            <input name="query" value="{% if request.args.query %}{{request.args.query}}{% endif %}" type="text" class="form-control" id="search" aria-describedby="search-description">
-            <button class="btn btn-primary">Search</button>
-        </div>
+        <input name="query" value="{% if request.args.query %}{{request.args.query}}{% endif %}" type="text" class="form-control" id="search" aria-describedby="search-description">
 
         <p class="form-text mt-3">Filter quotaiton by it's status</p>
         <div class="d-flex gap-3">
@@ -50,13 +39,13 @@ body { padding: 2rem}
             
             {% for status in quotation_status %}
             <div class="mb-3 form-check">
-                <input name="quotation_status_id" value="{{status.id}}" type="checkbox" class="checkbox-quotation-status form-check-input" id="quotation_status_id_{{status.id}}" autocomplete="off" {% if status.id|string in request.args.getlist('quotation_status_id') %}checked{% endif %}>
+                <input name="quotation_status_id" value="{{status.id}}" type="checkbox" class="checkbox-quotation-status form-check-input text-musted" id="quotation_status_id_{{status.id}}" autocomplete="off" {% if status.id|string in request.args.getlist('quotation_status_id') %}checked{% endif %}>
                 <label class="form-check-label" for="quotation_status_id_{{status.id}}">{{status.name}}</label>
             </div>            
             {% endfor %}
         </div>
 
-        <p class="form-text mt-3">Exclude quotations with empty fields</p>
+        <p class="form-text mt-3"><span class="text-decoration-underline">Exclude</span> quotations with empty fields</p>
         <div class="d-flex gap-3">
             <div class="mb-3 form-check">
                 <input name="fields_to_exclude_if_null" value="seller_name" type="checkbox" class="form-check-input" id="exclude_seller_name_null" autocomplete="off" {% if 'seller_name' in request.args.getlist('fields_to_exclude_if_null') %}checked{% endif %}>
@@ -68,6 +57,8 @@ body { padding: 2rem}
                 <label class="form-check-label" for="exclude_shiping_cost_null">Empty Shiping Cost</label>
             </div>
         </div>
+
+        <button class="btn btn-primary me-auto">Search</button>
     </form>
 
     <hr>
