@@ -1,7 +1,7 @@
 -- Create lokup table for store the available quation status
 CREATE TABLE IF NOT EXISTS "quotation_status" (
     "id" INTEGER,
-    "name" UNIQUE TEXT NOT NULL,
+    "name" UNIQUE VARCHAR(20) NOT NULL,
     PRIMARY KEY("id")
 );
 

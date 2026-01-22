@@ -4,7 +4,8 @@ from repository import SQLAlchemyRepository
 def get_quotation_list_data(
         engine: Engine,
         request_for_quotation_id: int,
-        query: str,
+        query: str = None,
+        quotation_status: list[str] = None,
         fields_to_exclude: list[str] = None
     ):
 
@@ -19,9 +20,10 @@ def get_quotation_list_data(
         request_for_quotation = repo.get_request_for_quotation_by_id(request_for_quotation_id)
         
         quotations = repo.filter_quotations(
-            request_for_quotation_id,
-            query,
-            _fields_to_exclude
+            request_for_quotation_id=request_for_quotation_id,
+            query_term=query,
+            fields_to_exclude=_fields_to_exclude,
+            quotation_status=quotation_status
         )
 
         # get all available quotation status
@@ -33,8 +35,8 @@ def get_quotation_list_data(
             "discarted": "info",
             "selected": "success",
         }
-
-    return {"request": request_for_quotation, "quotations":quotations, "css_status":map_quotation_status_to_bootstrap_classes}
+        quotation_status = repo.get_quotation_status()
+    return {"request": request_for_quotation, "quotations":quotations, "quotation_status":quotation_status, "css_status":map_quotation_status_to_bootstrap_classes}
     
 
 def get_quotation_edit_data(

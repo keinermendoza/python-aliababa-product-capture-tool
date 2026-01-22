@@ -77,12 +77,21 @@ def create_request_cotations():
 def list_quotations(request_for_quotation_id: int):
     query = request.args.get("query", None) 
     fields_to_exclude = request.args.getlist('fields_to_exclude_if_null')
-    result = services.get_quotation_list_data(engine, request_for_quotation_id, query, fields_to_exclude)
+    quotation_status_id = request.args.getlist('quotation_status_id')
+
+    result = services.get_quotation_list_data(
+        engine=engine,
+        request_for_quotation_id=request_for_quotation_id,
+        query=query,
+        quotation_status=quotation_status_id,
+        fields_to_exclude=fields_to_exclude
+    )
     
     return render_template(
         "quotation_list.html",
         quotations=result["quotations"],
         request_for_quotation=result["request"],
+        quotation_status=result["quotation_status"],
         css_status=result["css_status"]
     )
 

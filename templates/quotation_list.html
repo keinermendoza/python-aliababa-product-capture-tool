@@ -41,6 +41,16 @@ body { padding: 2rem}
             <button class="btn btn-primary">Search</button>
         </div>
 
+        <p class="form-text mt-3">Filter quotaiton by it's status</p>
+        <div class="d-flex gap-3">
+            {% for status in quotation_status %}
+            <div class="mb-3 form-check">
+                <input name="quotation_status_id" value="{{status.id}}" type="checkbox" class="form-check-input" id="quotation_status_id_{{status.id}}" autocomplete="off" {% if status.id in request.args.getlist('quotation_status_id') %}checked{% endif %}>
+                <label class="form-check-label" for="quotation_status_id_{{status.id}}">{{status.name}}</label>
+            </div>            
+            {% endfor %}
+        </div>
+
         <p class="form-text mt-3">Exclude quotations with empty fields</p>
         <div class="d-flex gap-3">
             <div class="mb-3 form-check">

@@ -84,6 +84,7 @@ class SQLAlchemyRepository:
         self,
         request_for_quotation_id: int,
         query_term: str = None, 
+        quotation_status: list[str] = None,
         fields_to_exclude: set[str] = None
     ) -> dict:
         """
@@ -98,6 +99,11 @@ class SQLAlchemyRepository:
         ).where(
             quotations_table.c.request_for_quotation_id==request_for_quotation_id
         )
+
+        if quotation_status:
+            quotations_stmt = quotations_stmt.where(
+                quotation_status_table.c.status_id.in_(quotation_status)
+            )
 
         if query_term:
             quotations_stmt = quotations_stmt.where(
