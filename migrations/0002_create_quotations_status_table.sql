@@ -1,7 +1,7 @@
 -- Create lokup table for store the available quation status
 CREATE TABLE IF NOT EXISTS "quotation_status" (
     "id" INTEGER,
-    "name" TEXT NOT NULL,
+    "name" UNIQUE TEXT NOT NULL,
     PRIMARY KEY("id")
 );
 
@@ -23,20 +23,20 @@ CREATE TABLE IF NOT EXISTS "quotations" (
     cheapest_shipping_company VARCHAR(8) NULL,
     cheapest_shipping_cost NUMERIC NULL,
     unit_product_price_offered NUMERIC NULL,
-    "status" INTEGER,
+    status_id INTEGER,
     PRIMARY KEY (id), 
     CONSTRAINT uix_cotation_company_and_product_names UNIQUE (request_for_quotation_id, product_name, company_name), 
-    FOREIGN KEY(request_for_quotation_id) REFERENCES "quotation_status" (id) ON DELETE RESTRICT,
-    FOREIGN KEY(status) REFERENCES "request_for_quotations" (id) ON DELETE CASCADE
+    FOREIGN KEY(request_for_quotation_id) REFERENCES "request_for_quotations" (id) ON DELETE CASCADE,
+    FOREIGN KEY(status_id) REFERENCES "quotation_status" (id) ON DELETE RESTRICT
 );
 
 -- Populates the quotation status table
 INSERT INTO "quotation_status" ("name")
 VALUES
     ('just quoted'),
-    ('wating for me'),
-    ('need shipment quotation'),
-    ('complete'),
+    ('waiting for me'),
+    ('need shipping quotation'),
+    ('completed'),
     ('discarted'),
     ('selected');
 
@@ -55,7 +55,7 @@ INSERT INTO "quotations" (
     cheapest_shipping_company,
     cheapest_shipping_cost,
     unit_product_price_offered,
-    status
+    status_id
 ) SELECT
     id,
     created,
@@ -70,10 +70,8 @@ INSERT INTO "quotations" (
     cheapest_shipping_company,
     cheapest_shipping_cost,
     unit_product_price_offered,
-    (
-        SELECT id FROM quotation_status WHERE name = 'just quoted'
-    ) 
-    FROM quotations_temp;
+    1
+    FROM "quotations_temp";
 
 -- Drop temporary table
 DROP TABLE quotations_temp;

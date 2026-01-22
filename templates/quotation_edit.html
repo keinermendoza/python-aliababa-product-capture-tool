@@ -51,6 +51,8 @@
             <li class="list-group-item"><strong>company_url:</strong> {{quotation.company_url}}</li>
             <li class="list-group-item"><strong>product_name:</strong> {{quotation.product_name}}</li>
             <li class="list-group-item"><strong>product_url:</strong> {{quotation.product_url}}</li>
+            <li class="list-group-item"><strong>status:</strong> {{quotation.status_name}}</li>
+        
         </ul>
     </div>
 
@@ -71,11 +73,22 @@
         <label for="unit_product_price_offered" class="form-label">unit_product_price_offered</label>
         <input value="{% if quotation.unit_product_price_offered %}{{quotation.unit_product_price_offered}}{% endif %}" name="unit_product_price_offered" type="number" min="0.01" step="0.01" class="form-control" id="public_minimum_price">
     </div>
+    
     <div class="col-md-6">
+        <label for="status_id" class="form-label">Status</label>
+        <select style="border: 1px solid black;" id="status_id" name="status_id" class="form-select" aria-label="quotaion status">
+        {% for status in quotation_status %}
+            <option {% if quotation.status_id == status.id %}selected{% endif %} value="{{status.id}}">{{status.id}} - {{status.name}}</option>
+        {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-3">
         <label for="cheapest_shipping_company" class="form-label">cheapest_shipping_company</label>
         <input value="{% if quotation.cheapest_shipping_company %}{{quotation.cheapest_shipping_company}}{% endif %}" name="cheapest_shipping_company" type="text" class="form-control" id="public_minimum_price">
     </div>
-    <div class="col-md-6">
+    
+    <div class="col-md-3">
         <label for="cheapest_shipping_cost" class="form-label">cheapest_shipping_cost</label>
         <input value="{% if quotation.cheapest_shipping_cost %}{{quotation.cheapest_shipping_cost}}{% endif %}" name="cheapest_shipping_cost" type="number" min="0.01" step="0.01" name="public_minimum_price" class="form-control" id="public_minimum_price">
     </div>

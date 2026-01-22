@@ -6,11 +6,11 @@ from flask_socketio import SocketIO, emit
 from repository import SQLAlchemyRepository 
 from sheets import write_quotations_csv
 from utils import copy_buyer_script_to_clipboard
-
+import services
 # config
 app = Flask(__name__)
 socketio = SocketIO(app)
-engine = create_engine("sqlite:///request_cotations.db", echo=False)
+engine = create_engine("sqlite:///request_for_quotations.db", echo=False)
 CORS(
     app,
     resources={
@@ -26,7 +26,6 @@ CORS(
 @app.post("/webhook")
 def webhook():
     data = request.get_json()
-    print(data)
     try:
         with engine.begin() as conn:
             repo = SQLAlchemyRepository(conn)
@@ -78,18 +77,13 @@ def create_request_cotations():
 def list_quotations(request_for_quotation_id: int):
     query = request.args.get("query", None) 
     fields_to_exclude = request.args.getlist('fields_to_exclude_if_null')
-    with engine.begin() as conn:
-        request_for_quotation_with_related_quotations = SQLAlchemyRepository(
-            conn
-        ).get_request_for_quotation_and_filter_its_related_quotations_by_id(
-            request_for_quotation_id,
-            query,
-            fields_to_exclude
-        )
+    result = services.get_quotation_list_data(engine, request_for_quotation_id, query, fields_to_exclude)
     
     return render_template(
         "quotation_list.html",
-        request_for_quotation_with_related_quotations=request_for_quotation_with_related_quotations
+        quotations=result["quotations"],
+        request_for_quotation=result["request"],
+        css_status=result["css_status"]
     )
 
 @app.post("/request/<int:request_for_quotation_id>/generate-cotation-csv")
@@ -106,40 +100,17 @@ def generate_quotations_csv(request_for_quotation_id: int):
 
 @app.get("/quotation/<int:quotation_id>")
 def edit_quotation(quotation_id: int):
-    quotation = None
-    try:
-        with engine.begin() as conn:
-            quotation = SQLAlchemyRepository(conn).get_quotation_by_id(quotation_id)
-    # TODO: replace for custom Exception as QuotationNotFound
-    except Exception as e:
-        # TODO: replace for emit event
-        # - also add event listener for show card with exception message in client
-        print(str(e)) 
-
+    result = services.get_quotation_edit_data(engine, quotation_id)
     return render_template(
         "quotation_edit.html",
-        quotation=quotation
+        quotation=result["quotation"],
+        quotation_status=result["status"]
     )
 
 @app.post("/quotation/<int:quotation_id>")
 def update_quotation(quotation_id: int):
-    try:
-        with engine.begin() as conn:
-            repo = SQLAlchemyRepository(conn)
-            quotation = repo.get_quotation_by_id(quotation_id)
-            repo.update_quotation(
-                quotation=quotation,
-                data=request.form   
-            )
-
-    # TODO: replace for custom Exception as QuotationNotFound
-    except Exception as e:
-        # TODO: replace for emit event
-        # - also add event listener for show card with exception message in client
-        print(str(e)) 
-
-    return redirect(url_for("edit_quotation", quotation_id=quotation.id))
-
+    services.update_quotation(engine, quotation_id, request.form)
+    return redirect(url_for("edit_quotation", quotation_id=quotation_id))
 
 # events
 @socketio.event
@@ -153,6 +124,14 @@ def update_active_request_for_quotation(data):
 def start_db():
     from schema import metadata
     metadata.create_all(engine)
+    from fake import quotation_status 
+    
+    # create quotation status
+    with engine.begin() as conn:
+        repo =  SQLAlchemyRepository(conn)
+
+        for status in quotation_status:
+            repo.store_quotation_status(**status)
 
 @app.cli.command("start_and_seed_db")
 def start_and_seed_db():
@@ -160,15 +139,22 @@ def start_and_seed_db():
     create and intitialize database using fake data 
     """
     from schema import metadata
-    from fake import fake_request_for_quotations 
+    from fake import fake_request_for_quotations, quotation_status 
     metadata.create_all(engine)
 
     with engine.begin() as conn:
         repo =  SQLAlchemyRepository(conn)
+        # create quotation status
+        for status in quotation_status:
+            repo.store_quotation_status(**status)
+
         for request in fake_request_for_quotations:
+            # create fake request for quotations
             request_id = repo.store_request_for_quotation(**request["request"])
             repo.set_active_request_for_quotation_id(request_id)
             for quotation in request["quotations"]:
+                
+                # create fake quotations
                 repo.store_quotation(quotation)
 
 

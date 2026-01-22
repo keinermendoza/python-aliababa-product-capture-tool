@@ -34,6 +34,13 @@ active_request_for_quotations_table = Table(
     Column("request_for_quotation_id", Integer, ForeignKey('request_for_quotations.id', ondelete='CASCADE'), nullable=False)
 )
 
+quotation_status_table = Table(
+    "quotation_status",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("name", String(20), unique=True, nullable=False)
+)
+
 quotations_table = Table(
     "quotations",
     metadata,
@@ -50,5 +57,7 @@ quotations_table = Table(
     Column("cheapest_shipping_company", String(8), nullable=True),
     Column("cheapest_shipping_cost", Numeric(8, 2), nullable=True),
     Column("unit_product_price_offered", Numeric(8, 2), nullable=True),
+    Column("status_id", Integer, ForeignKey('quotation_status.id', ondelete='RESTRICT'), nullable=False),
     UniqueConstraint("request_for_quotation_id", 'product_name', 'company_name', name='uix_cotation_company_and_product_names')
 )
+

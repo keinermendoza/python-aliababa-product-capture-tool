@@ -1,3 +1,12 @@
+quotation_status = [
+    {"name": "just quoted"},
+    {"name": "waiting for me"},
+    {"name": "need shipping quotation"},
+    {"name": "completed"},
+    {"name": "discarted"},
+    {"name": "selected"},
+]
+
 fake_request_for_quotations = [
     {
         "request": {"title": "sportive shoes", "quantity": 200},
@@ -12,7 +21,8 @@ fake_request_for_quotations = [
                 "seller_name": "John Doe",
                 "cheapest_shipping_company": "DHL",
                 "cheapest_shipping_cost": 150.50,
-                "unit_product_price_offered": 42.00
+                "unit_product_price_offered": 42.00,
+                "status_id": 1
             },
             {
                 "company_name": "Footwear Factory Inc",
@@ -24,7 +34,9 @@ fake_request_for_quotations = [
                 "seller_name": "Alice Smith",
                 "cheapest_shipping_company": "FedEx",
                 "cheapest_shipping_cost": 210.00,
-                "unit_product_price_offered": 40.00
+                "unit_product_price_offered": 40.00,
+                "status_id": 1
+
             }
         ]
     },
@@ -41,7 +53,8 @@ fake_request_for_quotations = [
                 "seller_name": "Roberto Tech",
                 "cheapest_shipping_company": "UPS",
                 "cheapest_shipping_cost": 45.00,
-                "unit_product_price_offered": 85.50
+                "unit_product_price_offered": 85.50,
+                "status_id": 1
             },
             {
                 "company_name": "Future Electronics",
@@ -53,7 +66,8 @@ fake_request_for_quotations = [
                 "seller_name": "Lin Xiao",
                 "cheapest_shipping_company": "EMS",
                 "cheapest_shipping_cost": 30.25,
-                "unit_product_price_offered": 98.00
+                "unit_product_price_offered": 98.00,
+                "status_id": 1
             }
         ]
     }

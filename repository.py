@@ -3,7 +3,8 @@ from sqlalchemy.exc import IntegrityError
 from schema import (
     quotations_table,
     request_for_quotations_table,
-    active_request_for_quotations_table
+    active_request_for_quotations_table,
+    quotation_status_table
 ) 
 
 class SQLAlchemyRepository:
@@ -79,20 +80,24 @@ class SQLAlchemyRepository:
             select(request_for_quotations_table).where(request_for_quotations_table.c.id==request_for_quotation_id)
         ).one()
 
-    def get_request_for_quotation_and_filter_its_related_quotations_by_id(
+    def filter_quotations(
         self,
         request_for_quotation_id: int,
         query_term: str = None, 
-        fields_to_exclude: list[str] = None
+        fields_to_exclude: set[str] = None
     ) -> dict:
         """
         Retrieve a single request quotation and all its associated child quotations.
         """
-        request_for_quotation = self.get_request_for_quotation_by_id(request_for_quotation_id)
 
-        quotations_stmt = select(quotations_table).where(
-                quotations_table.c.request_for_quotation_id==request_for_quotation_id
-            )
+        quotations_stmt = select(
+            quotations_table,
+            quotation_status_table.c.name.label("status_name")
+        ).join(
+            quotation_status_table, quotations_table.c.status_id == quotation_status_table.c.id
+        ).where(
+            quotations_table.c.request_for_quotation_id==request_for_quotation_id
+        )
 
         if query_term:
             quotations_stmt = quotations_stmt.where(
@@ -102,22 +107,20 @@ class SQLAlchemyRepository:
                     quotations_table.c.product_name.ilike(f"%{query_term}%"),
                 )
             )
-        
-        # REMOVE tuples WHERE column IS NOT NULL;
-        # uses SET to filter only by allowed fields
-        allowed_fields = {"seller_name", "cheapest_shipping_cost"}
-        fields_to_process = set(fields_to_exclude)
-        fields_to_filter = allowed_fields.intersection(fields_to_process)
 
-        for field in fields_to_filter: 
+        for field in fields_to_exclude: 
             quotations_stmt = quotations_stmt.where(quotations_table.c[field].is_not(None))
 
-        # execute 
-        quotations = self.conn.execute(
+        return self.conn.execute(
             quotations_stmt.order_by(quotations_table.c.id.desc())
         ).fetchall()
 
-        return {"request": request_for_quotation, "quotations":quotations}
+
+    def store_quotation_status(self, name:str):
+        self.conn.execute(insert(quotation_status_table).values(name=name))
+
+    def get_quotation_status(self) -> list[Row]:
+        return self.conn.execute(select(quotation_status_table)).fetchall()
 
     def store_quotation(self, quotation_data):
         """
@@ -137,6 +140,7 @@ class SQLAlchemyRepository:
                         public_minimum_price = quotation_data.get("price_offered", quotation_data.get("public_minimum_price")),
                         public_minimum_quantity = quotation_data.get("minimum_quantity",  quotation_data.get("public_minimum_quantity")),
                         # end TODO
+                        status_id = quotation_data["status_id"],
                         request_for_quotation_id=active_request_for_quotation_id
                     )
                 )
@@ -144,41 +148,29 @@ class SQLAlchemyRepository:
             except KeyError as e:
                 raise Exception(f"data dosen't acomplish the required contract: {str(e)}") 
             except IntegrityError as e:
-                raise Exception("you have already registered this porduct at this request for quotation")
+                raise Exception(f"you have already registered this porduct at this request for quotation: {str(e)}")
             return True
         raise Exception("you must to generate a request for quotation before to store individual quotations")
     
     def get_quotation_by_id(self, quotation_id:int) -> Row:
         return self.conn.execute(
-            select(quotations_table).where(quotations_table.c.id==quotation_id)
+            select(
+                quotations_table,
+                quotation_status_table.c.name.label("status_name")
+            ).join(
+                quotation_status_table,
+                quotation_status_table.c.id == quotations_table.c.status_id
+            ).where(quotations_table.c.id==quotation_id)
         ).one()
     
     def update_quotation(
             self,
-            quotation: Row,
-            data: dict
+            quotation_id: int,
+            values_to_update: dict,
         ) -> None:
-
-        editable_fields = [
-            "public_minimum_price",
-            "public_minimum_quantity",
-            "seller_name",
-            "cheapest_shipping_company",
-            "cheapest_shipping_cost",
-            "unit_product_price_offered",
-        ]
-        
-        values_to_updata = {}
-
-        # fill the empty fields with old instance data
-        for key in editable_fields:
-            if not data.get(key):
-                values_to_updata[key] = quotation._mapping[key]
-            else:
-                values_to_updata[key] = data[key]
 
         self.conn.execute(
             update(quotations_table)
-            .where(quotations_table.c.id==quotation.id)
-            .values(values_to_updata)
+            .where(quotations_table.c.id==quotation_id)
+            .values(values_to_update)
         )
