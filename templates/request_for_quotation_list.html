@@ -20,9 +20,11 @@
                     <th>ID</th>
                     <th>created</th>
                     <th>Title</th>
+                    <th>Reference</th>
                     <th>Quantity</th>
                     <th>Quotations</th>
                     <th>Record status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,6 +36,17 @@
                         <a href="{{url_for('list_quotations', request_for_quotation_id=item.id)}}">
                         {{item.title}}
                         </a>
+                    </td>
+                    <td>
+                    {% if item.ref_product_url %}
+                        <a target="_blank" href="{{item.ref_product_url}}">
+                        {% if item.product_image_url %}
+                        <img src="{{item.product_image_url}}" alt="">
+                        {% else %}
+                        See ref
+                        {% endif %}
+                        </a>
+                    {% endif %}                    
                     </td>
                     <td>{{item.quantity}}</td>
                     <td>{{item.quotation_count}}</td>
@@ -47,7 +60,12 @@
                         <button data-id="{{item.id}}" class="btn btn-secondary btn-toogle-selected-request-quotation">SELECT</button>
                     </td>
                     {% endif %}
+                    <td>
+                        <button data-request-id="{{item.id}}" data-title="{{item.title}}" class="btn btn-danger delete-request-for-quotation">Delete</button>        
+                    </td>       
                 </tr>        
+              
+
                 {% endfor %}
             </tbody>
         </table>
@@ -63,6 +81,10 @@
             <div class="my-2">
                 <label class="form-label" for="quantity">Request for Quotation quantity</label>
                 <input class="form-control" required id="quantity" type="number" name="quantity">
+            </div>
+            <div class="my-2">
+                <label class="form-label" for="ref_product_url">Reference product URL</label>
+                <input class="form-control" required id="ref_product_url" type="text" name="ref_product_url">
             </div>
             <button class="mt-2 btn btn-primary">Save</button>
         </form>
@@ -83,6 +105,21 @@
         function updateCurrentRequestQuotation(id) {
             socket.emit("update_active_request_for_quotation", {id});
         }
+
+        function deleteRequestForQuotation(id) {
+            socket.emit("delete_request_for_quotation", {id});
+        }
+
+        const ButtonCollectionActionDelete = document.getElementsByClassName("delete-request-for-quotation");
+        const ButtonsActionDelete = Array.from(ButtonCollectionActionDelete);
+
+        ButtonsActionDelete.forEach(btn => {
+            btn.onclick = () => {
+            if (window.confirm("Are you Sure you want to delete " + btn.dataset.title)) {
+                deleteRequestForQuotation(btn.dataset.requestId)
+            } 
+        }
+        });
         
     </script>
 </body>

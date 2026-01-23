@@ -65,10 +65,11 @@ def list_requests_for_quotations():
 def create_request_cotations():
     title = request.form.get("title", None)
     quantity = request.form.get("quantity", None)
+    ref_product_url = request.form.get("ref_product_url", None)
 
     with engine.begin() as conn:
         repo = SQLAlchemyRepository(conn)
-        request_for_quotations_id = repo.store_request_for_quotation(title, quantity)
+        request_for_quotations_id = repo.store_request_for_quotation(title, quantity, ref_product_url)
         repo.set_active_request_for_quotation_id(request_for_quotations_id)
     
     return redirect(url_for("list_requests_for_quotations"))
@@ -128,6 +129,12 @@ def update_active_request_for_quotation(data):
         SQLAlchemyRepository(conn).change_active_request_for_quotation(data["id"])
     emit("reload_page")
  
+@socketio.event
+def delete_request_for_quotation(data):
+    with engine.begin() as conn:
+        SQLAlchemyRepository(conn).delete_request_for_quotation_by_id(data["id"])
+    emit("reload_page")
+
 # custom flask commands
 @app.cli.command("start_db")
 def start_db():

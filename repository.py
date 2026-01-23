@@ -1,4 +1,4 @@
-from sqlalchemy import func, select, insert, update, or_, Connection, Row
+from sqlalchemy import func, select, insert, update, delete, or_, Connection, Row
 from sqlalchemy.exc import IntegrityError
 from schema import (
     quotations_table,
@@ -47,13 +47,22 @@ class SQLAlchemyRepository:
             stmt = insert(active_request_for_quotations_table).values(request_for_quotation_id=request_for_quotation_id)
         self.conn.execute(stmt)
 
-    def store_request_for_quotation(self, title: str, quantity: int) -> int:
+    def store_request_for_quotation(self, title: str, quantity: int, ref_product_url: str) -> int:
         """
         Store a new request quotation instance and return its primary key.
         """
-        stmt = insert(request_for_quotations_table).values(title=title, quantity=quantity)
+        stmt = insert(
+            request_for_quotations_table
+            ).values(
+                title=title,
+                quantity=quantity,
+                ref_product_url=ref_product_url
+            )
         result = self.conn.execute(stmt)
         return result.inserted_primary_key[0]
+    
+    def delete_request_for_quotation_by_id(self, id: int):
+        self.conn.execute(delete(request_for_quotations_table).where(request_for_quotations_table.c.id==id))
 
     def get_request_for_quotations_with_quotations_count(self):
         """
@@ -64,6 +73,7 @@ class SQLAlchemyRepository:
             request_for_quotations_table.c.title,
             request_for_quotations_table.c.quantity,
             request_for_quotations_table.c.created,
+            request_for_quotations_table.c.ref_product_url,
             func.count(quotations_table.c.id).label("quotation_count")
         ).outerjoin(quotations_table, quotations_table.c.request_for_quotation_id == request_for_quotations_table.c.id).group_by(
             request_for_quotations_table.c.id
