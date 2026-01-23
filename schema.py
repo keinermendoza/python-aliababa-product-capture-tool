@@ -26,6 +26,8 @@ request_for_quotations_table = Table(
     Column("title", String(50), CheckConstraint("title != ''"), unique=True, nullable=False),
     Column("quantity", Integer, CheckConstraint("quantity > 0"), nullable=False),
     Column("created", DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP')),
+    Column("ref_product_url", Text, nullable=True),
+    Column("product_image_url", Text, nullable=True),
 )
 
 active_request_for_quotations_table = Table(
