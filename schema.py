@@ -28,6 +28,7 @@ request_for_quotations_table = Table(
     Column("created", DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP')),
     Column("ref_product_url", Text, nullable=True),
     Column("product_image_url", Text, nullable=True),
+    Column("is_discarted", Boolean, default=False, nullable=False)
 )
 
 active_request_for_quotations_table = Table(

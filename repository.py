@@ -73,6 +73,7 @@ class SQLAlchemyRepository:
             request_for_quotations_table.c.title,
             request_for_quotations_table.c.quantity,
             request_for_quotations_table.c.created,
+            request_for_quotations_table.c.is_discarted,
             request_for_quotations_table.c.ref_product_url,
             func.count(quotations_table.c.id).label("quotation_count")
         ).outerjoin(quotations_table, quotations_table.c.request_for_quotation_id == request_for_quotations_table.c.id).group_by(

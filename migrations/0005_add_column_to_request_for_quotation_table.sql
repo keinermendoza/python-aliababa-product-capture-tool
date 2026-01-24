@@ -1,0 +1,1 @@
+ALTER TABLE "request_for_quotations" ADD COLUMN "is_discarted" INTEGER DEFAULT 0;

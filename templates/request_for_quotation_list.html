@@ -29,7 +29,7 @@
             </thead>
             <tbody>
                 {% for item in requests_with_quotations_count %}
-                <tr>
+                <tr {% if item.is_discarted %} class="text-decoration-line-through text-muted"{% endif %}>
                     <td>{{item.id}}</td>
                     <td>{{item.created}}</td>
                     <td>
