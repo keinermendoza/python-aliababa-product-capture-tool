@@ -47,7 +47,7 @@ class SQLAlchemyRepository:
             stmt = insert(active_request_for_quotations_table).values(request_for_quotation_id=request_for_quotation_id)
         self.conn.execute(stmt)
 
-    def store_request_for_quotation(self, title: str, quantity: int, ref_product_url: str) -> int:
+    def store_request_for_quotation(self, title: str, quantity: int, ref_product_url: str =  None) -> int:
         """
         Store a new request quotation instance and return its primary key.
         """
