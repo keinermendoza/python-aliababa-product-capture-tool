@@ -29,6 +29,8 @@ def webhook():
     try:
         with engine.begin() as conn:
             repo = SQLAlchemyRepository(conn)
+            default_quotation_status: int = repo.get_default_status_id()
+            data["status_id"] = default_quotation_status
             repo.store_quotation(data)
             request_for_quotation = repo.get_request_for_quotation_by_id(
                 repo.get_active_request_for_quotation_id()

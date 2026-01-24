@@ -191,3 +191,13 @@ class SQLAlchemyRepository:
             .where(quotations_table.c.id==quotation_id)
             .values(values_to_update)
         )
+
+    def get_default_status_id(self) -> int:
+        default_quotation_status: int = self.conn.execute(
+            select(
+                quotation_status_table.c.id
+            ).where(
+                quotation_status_table.c.name == "just quoted"
+            )
+        ).one()
+        return default_quotation_status.id
