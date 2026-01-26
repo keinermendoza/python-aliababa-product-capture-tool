@@ -24,7 +24,7 @@
                     <th>Quantity</th>
                     <th>Quotations</th>
                     <th>Record status</th>
-                    <th>Action</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,7 +41,7 @@
                     {% if item.ref_product_url %}
                         <a target="_blank" href="{{item.ref_product_url}}">
                         {% if item.product_image_url %}
-                        <img src="{{item.product_image_url}}" alt="">
+                        <img width="40" height="40" src="{{item.product_image_url}}" alt="">
                         {% else %}
                         See ref
                         {% endif %}
@@ -60,7 +60,8 @@
                         <button data-id="{{item.id}}" class="btn btn-secondary btn-toogle-selected-request-quotation">SELECT</button>
                     </td>
                     {% endif %}
-                    <td>
+                    <td class="d-flex gap-2">
+                        <a href="{{ url_for('edit_request_for_quotation', request_for_quotation_id=item.id) }}" class="btn btn-primary">Edit</a>        
                         <button data-request-id="{{item.id}}" data-title="{{item.title}}" class="btn btn-danger delete-request-for-quotation">Delete</button>        
                     </td>       
                 </tr>        
@@ -73,7 +74,7 @@
 
     <aside class="">
         <form class="sticky-top card shadow p-4 ms-auto" style="max-width:30rem;" method="post">
-            <p class="fs-4">Create a new Request Quotation</p>
+            <p class="fs-4">New Request for Quotation</p>
             <div class="my-2" >
                 <label class="form-label" for="title">Request for Quotation Title</label>
                 <input autofocus class="form-control" required id="title" type="text" name="title">
@@ -86,6 +87,15 @@
                 <label class="form-label" for="ref_product_url">Reference product URL</label>
                 <input class="form-control" required id="ref_product_url" type="text" name="ref_product_url">
             </div>
+            <div class="my-2">
+                <label class="form-label" for="product_image_url">Product image URL</label>
+                <input class="form-control" required id="product_image_url" type="text" name="product_image_url">
+            </div>
+            <div class="my-2">
+                <label class="form-label" for="description">Description</label>
+                <textarea rows="3" class="form-control" name="description" id="description"></textarea>
+            </div>
+            
             <button class="mt-2 btn btn-primary">Save</button>
         </form>
     </aside>

@@ -6,7 +6,8 @@ from flask_socketio import SocketIO, emit
 from repository import SQLAlchemyRepository 
 from sheets import write_quotations_csv
 from utils import copy_buyer_script_to_clipboard
-import services
+from services import quotation as quotation_services
+from services import request_for_quotation as request_for_quotation_services
 # config
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -52,29 +53,34 @@ def webhook():
 
 @app.get("/")
 def list_requests_for_quotations():
-    with engine.begin() as conn:
-        repo = SQLAlchemyRepository(conn)
-        id = repo.get_active_request_for_quotation_id()
-        requests_with_quotations_count = repo.get_request_for_quotations_with_quotations_count()
-
+    result = request_for_quotation_services.list_request_for_quotation(engine)
     return render_template(
         "request_for_quotation_list.html",
-        requests_with_quotations_count=requests_with_quotations_count,
-        active_request_for_quotation_id=id
+        requests_with_quotations_count=result["requests_with_quotations_count"],
+        active_request_for_quotation_id=result["id"]
     )
 
 @app.post("/")
 def create_request_cotations():
-    title = request.form.get("title", None)
-    quantity = request.form.get("quantity", None)
-    ref_product_url = request.form.get("ref_product_url", None)
-
-    with engine.begin() as conn:
-        repo = SQLAlchemyRepository(conn)
-        request_for_quotations_id = repo.store_request_for_quotation(title, quantity, ref_product_url)
-        repo.set_active_request_for_quotation_id(request_for_quotations_id)
-    
+    request_for_quotation_services.store_request_for_quotation(engine, request.form)
     return redirect(url_for("list_requests_for_quotations"))
+
+@app.get("/request_for_quotation/<int:request_for_quotation_id>")
+def edit_request_for_quotation(request_for_quotation_id: int):
+    request_for_quotation = request_for_quotation_services.get_request_for_quotation_by_id(engine, request_for_quotation_id)
+    return render_template(
+        "request_for_quotation_edit.html",
+        request_for_quotation=request_for_quotation
+    )
+
+@app.post("/request_for_quotation/<int:request_for_quotation_id>")
+def update_request_cotations(request_for_quotation_id: int):
+    is_discarted = request.form.get('is_discarted') is not None
+    data = dict(request.form)
+    data["is_discarted"] = is_discarted
+    request_for_quotation_services.update_request_for_quotation(engine, request_for_quotation_id, data)
+    return redirect(url_for("edit_request_for_quotation", request_for_quotation_id=request_for_quotation_id))
+
 
 @app.get("/request/<int:request_for_quotation_id>")
 def list_quotations(request_for_quotation_id: int):
@@ -82,7 +88,7 @@ def list_quotations(request_for_quotation_id: int):
     fields_to_exclude = request.args.getlist('fields_to_exclude_if_null')
     quotation_status_id = request.args.getlist('quotation_status_id')
 
-    result = services.get_quotation_list_data(
+    result = quotation_services.get_quotation_list_data(
         engine=engine,
         request_for_quotation_id=request_for_quotation_id,
         query=query,
@@ -112,7 +118,7 @@ def generate_quotations_csv(request_for_quotation_id: int):
 
 @app.get("/quotation/<int:quotation_id>")
 def edit_quotation(quotation_id: int):
-    result = services.get_quotation_edit_data(engine, quotation_id)
+    result = quotation_services.get_quotation_edit_data(engine, quotation_id)
     return render_template(
         "quotation_edit.html",
         quotation=result["quotation"],
@@ -121,7 +127,7 @@ def edit_quotation(quotation_id: int):
 
 @app.post("/quotation/<int:quotation_id>")
 def update_quotation(quotation_id: int):
-    services.update_quotation(engine, quotation_id, request.form)
+    quotation_services.update_quotation(engine, quotation_id, request.form)
     return redirect(url_for("edit_quotation", quotation_id=quotation_id))
 
 # events

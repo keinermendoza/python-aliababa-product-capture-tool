@@ -16,8 +16,9 @@ body { padding: 2rem}
         <a href="{{url_for('list_requests_for_quotations')}}">Come back to request for quotations list</a>
     </p>
 
+    <p class="fs-5">Quotations for</p>
     <div class="d-flex gap-4 align-items-center">
-        <h1>Quotations for {{request_for_quotation.title}}</h1>
+        <h1>{{request_for_quotation.title}}</h1>
        <div>
             <button class="btn btn-warning" id="btn-generate-csv" data-url-endpoint="{{url_for('generate_quotations_csv', request_for_quotation_id=request_for_quotation.id)}}" >Generate CSV</button>
         </div>
@@ -66,24 +67,21 @@ body { padding: 2rem}
     <table class="table">
         <thead>
             <tr>
-                <th>ID / Edit</th>
                 <th>Seller</th>
                 <th>Status</th>
                 <th>Company</th>
                 <th>Product</th>
-                <th>Posted Min Price</th>
-                <th>Posted Min Qnt</th>
-                <th>cheapest_shipping_company</th>
-                <th>cheapest_shipping_cost</th>
-                <th>unit_product_price_offered</th>
+                <th>Post Price</th>
+                <th>Post Qnt</th>
+                <th>Shipping By</th>
+                <th>Shipping Cost</th>
+                <th>EXW Unit Price</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
             {% for quotation in quotations %}
             <tr>
-                <td>
-                    <a class="btn btn-primary" href="{{url_for('edit_quotation', quotation_id=quotation.id)}}">{{quotation.id}}</a>
-                </td>
                 <td>{{quotation.seller_name}}</td>
                 <td>
                     <span class="badge text-bg-{{css_status.get(quotation.status_name)}}">{{quotation.status_name}}</span>
@@ -100,6 +98,9 @@ body { padding: 2rem}
                 <td>{{quotation.cheapest_shipping_company}}</td>
                 <td>{{quotation.cheapest_shipping_cost}}</td>
                 <td>{{quotation.unit_product_price_offered}}</td>
+                <td>
+                    <a class="btn btn-primary" href="{{url_for('edit_quotation', quotation_id=quotation.id)}}">Edit</a>
+                </td>
             </tr>        
             {% endfor %}
         </tbody>

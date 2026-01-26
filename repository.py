@@ -47,7 +47,15 @@ class SQLAlchemyRepository:
             stmt = insert(active_request_for_quotations_table).values(request_for_quotation_id=request_for_quotation_id)
         self.conn.execute(stmt)
 
-    def store_request_for_quotation(self, title: str, quantity: int, ref_product_url: str =  None) -> int:
+    def store_request_for_quotation(
+            self,
+            title: str,
+            quantity: int,
+            ref_product_url: str =  None,
+            product_image_url = None,
+            description: str = None,
+            is_discarted: bool = None,
+        ) -> int:
         """
         Store a new request quotation instance and return its primary key.
         """
@@ -56,11 +64,25 @@ class SQLAlchemyRepository:
             ).values(
                 title=title,
                 quantity=quantity,
-                ref_product_url=ref_product_url
+                ref_product_url=ref_product_url,
+                product_image_url=product_image_url
             )
         result = self.conn.execute(stmt)
         return result.inserted_primary_key[0]
-    
+
+    def update_request_for_quotation(
+            self,
+            request_for_quotation_id: int,
+            values_to_update: dict,
+        ) -> None:
+
+        self.conn.execute(
+            update(request_for_quotations_table)
+            .where(request_for_quotations_table.c.id==request_for_quotation_id)
+            .values(values_to_update)
+        )
+
+
     def delete_request_for_quotation_by_id(self, id: int):
         self.conn.execute(delete(request_for_quotations_table).where(request_for_quotations_table.c.id==id))
 
@@ -69,12 +91,7 @@ class SQLAlchemyRepository:
         Retrieve all request quotations along with the count of their associated quotations.
         """
         stmt = select(
-            request_for_quotations_table.c.id,
-            request_for_quotations_table.c.title,
-            request_for_quotations_table.c.quantity,
-            request_for_quotations_table.c.created,
-            request_for_quotations_table.c.is_discarted,
-            request_for_quotations_table.c.ref_product_url,
+            request_for_quotations_table,
             func.count(quotations_table.c.id).label("quotation_count")
         ).outerjoin(quotations_table, quotations_table.c.request_for_quotation_id == request_for_quotations_table.c.id).group_by(
             request_for_quotations_table.c.id
