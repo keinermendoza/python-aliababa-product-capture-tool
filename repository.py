@@ -86,18 +86,7 @@ class SQLAlchemyRepository:
     def delete_request_for_quotation_by_id(self, id: int):
         self.conn.execute(delete(request_for_quotations_table).where(request_for_quotations_table.c.id==id))
 
-    def get_request_for_quotations_with_quotations_count(self):
-        """
-        Retrieve all request quotations along with the count of their associated quotations.
-        """
-        stmt = select(
-            request_for_quotations_table,
-            func.count(quotations_table.c.id).label("quotation_count")
-        ).outerjoin(quotations_table, quotations_table.c.request_for_quotation_id == request_for_quotations_table.c.id).group_by(
-            request_for_quotations_table.c.id
-        )
-        result = self.conn.execute(stmt)
-        return result.fetchall()
+    
 
     def get_request_for_quotation_by_id(self, request_for_quotation_id: int):
         """

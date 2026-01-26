@@ -7,7 +7,8 @@ from repository import SQLAlchemyRepository
 from sheets import write_quotations_csv
 from utils import copy_buyer_script_to_clipboard
 from services import quotation as quotation_services
-from services import request_for_quotation as request_for_quotation_services
+from services.request_for_quotation import RequestForQuotationServices
+
 # config
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -53,21 +54,21 @@ def webhook():
 
 @app.get("/")
 def list_requests_for_quotations():
-    result = request_for_quotation_services.list_request_for_quotation(engine)
+    result = RequestForQuotationServices.get_list_with_quotations_count(engine)
     return render_template(
         "request_for_quotation_list.html",
-        requests_with_quotations_count=result["requests_with_quotations_count"],
-        active_request_for_quotation_id=result["id"]
+        requests_with_quotations_count=result.requests_with_quotations_count,
+        active_request_for_quotation_id=result.active_request_id
     )
 
 @app.post("/")
 def create_request_cotations():
-    request_for_quotation_services.store_request_for_quotation(engine, request.form)
+    RequestForQuotationServices.store_request_for_quotation(engine, request.form)
     return redirect(url_for("list_requests_for_quotations"))
 
 @app.get("/request_for_quotation/<int:request_for_quotation_id>")
 def edit_request_for_quotation(request_for_quotation_id: int):
-    request_for_quotation = request_for_quotation_services.get_request_for_quotation_by_id(engine, request_for_quotation_id)
+    request_for_quotation = RequestForQuotationServices.get_request_for_quotation_by_id(engine, request_for_quotation_id)
     return render_template(
         "request_for_quotation_edit.html",
         request_for_quotation=request_for_quotation
@@ -78,7 +79,7 @@ def update_request_cotations(request_for_quotation_id: int):
     is_discarted = request.form.get('is_discarted') is not None
     data = dict(request.form)
     data["is_discarted"] = is_discarted
-    request_for_quotation_services.update_request_for_quotation(engine, request_for_quotation_id, data)
+    RequestForQuotationServices.update_request_for_quotation(engine, request_for_quotation_id, data)
     return redirect(url_for("edit_request_for_quotation", request_for_quotation_id=request_for_quotation_id))
 
 
